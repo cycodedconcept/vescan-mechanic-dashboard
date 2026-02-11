@@ -14,7 +14,10 @@ import {
   Menu
 } from 'lucide-react';
 
+import { Link, useLocation } from 'react-router-dom';
+
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
+  const location = useLocation();
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -23,6 +26,17 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const navItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Wrench, label: 'Services', badge: '8', badgeColor: 'bg-danger', path: '/services' },
+    { icon: Wallet, label: 'Financial', path: '/financial' },
+    { icon: Users, label: 'Customers', path: '/customers' },
+    { icon: Car, label: 'Vehicles', path: '/vehicles' },
+    { icon: Package, label: 'Inventory', badge: '3', badgeColor: 'bg-danger', path: '/inventory' },
+    { icon: ShoppingCart, label: 'E-Commerce', path: '/ecommerce' },
+    { icon: BarChart2, label: 'Analytics', path: '/analytics' }
+  ];
 
   return (
     <AnimatePresence mode="wait">
@@ -71,42 +85,38 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               <div className="border-bottom border-white opacity-25 w-100 mb-4"></div>
 
               <nav className="nav flex-column flex-grow-1 gap-1 navi">
-                {[
-                  { icon: LayoutDashboard, label: 'Dashboard', active: true },
-                  { icon: Wrench, label: 'Services', badge: '8', badgeColor: 'bg-danger' },
-                  { icon: Wallet, label: 'Financial' },
-                  { icon: Users, label: 'Customers' },
-                  { icon: Car, label: 'Vehicles' },
-                  { icon: Package, label: 'Inventory', badge: '3', badgeColor: 'bg-danger' },
-                  { icon: ShoppingCart, label: 'E-Commerce' },
-                  { icon: BarChart2, label: 'Analytics' }
-                ].map((item, index) => (
-                  <motion.a 
-                    key={index}
-                    href="#" 
-                    whileHover={{ x: 5 }}
-                    className={`nav-link d-flex align-items-center gap-3 px-3 py-3 rounded-2 ${
-                      item.active 
-                        ? 'text-white' 
-                        : 'text-white opacity-75 hover-opacity-100'
-                    }`}
-                    style={{
-                      backgroundColor: item.active ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                      fontWeight: item.active ? '500' : '400'
-                    }}
-                  >
-                    <item.icon size={20} strokeWidth={item.active ? 2.5 : 2} />
-                    <span style={{ fontSize: '0.95rem' }}>{item.label}</span>
-                    {item.badge && (
-                      <span 
-                        className={`badge ${item.badgeColor} rounded-circle ms-auto d-flex align-items-center justify-content-center`}
-                        style={{ width: '24px', height: '24px', fontSize: '0.75rem' }}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </motion.a>
-                ))}
+                {navItems.map((item, index) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={index}
+                      to={item.path} 
+                      className={`nav-link d-flex align-items-center gap-3 px-3 py-3 rounded-2 ${
+                        isActive 
+                          ? 'text-white' 
+                          : 'text-white opacity-75 hover-opacity-100'
+                      }`}
+                      style={{
+                        backgroundColor: isActive ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                        fontWeight: isActive ? '500' : '400',
+                        textDecoration: 'none'
+                      }}
+                    >
+                      <motion.div whileHover={{ x: 5 }} className="d-flex align-items-center gap-3 w-100">
+                        <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                        <span style={{ fontSize: '0.95rem' }}>{item.label}</span>
+                        {item.badge && (
+                          <span 
+                            className={`badge ${item.badgeColor} rounded-circle ms-auto d-flex align-items-center justify-content-center`}
+                            style={{ width: '24px', height: '24px', fontSize: '0.75rem' }}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </motion.div>
+                    </Link>
+                  );
+                })}
               </nav>
 
               <div className="mt-auto">

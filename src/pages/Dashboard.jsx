@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
-import Sidebar from '../components/Sidebar';
+import { useOutletContext } from 'react-router-dom';
 import {
   AlertTriangle,
   Menu,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+  const { isSidebarOpen, toggleSidebar } = useOutletContext();
   const [selectedAlert, setSelectedAlert] = React.useState(null);
 
   const diagnosticAlerts = [
@@ -90,20 +90,15 @@ const Dashboard = () => {
     }
   ];
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
   return (
-    <div className="d-flex min-vh-100 bg-light" style={{ fontFamily: 'Arial, sans-serif' }}>
-      {/* Sidebar */}
-      <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
+    <>
       {/* Main Content */}
       <motion.main 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
-        className="flex-grow-1 p-4 overflow-auto" 
-        style={{ maxHeight: '100vh' }}
+        className="flex-grow-1 p-4 overflow-auto h-100" 
       >
         {/* Header */}
         <header className="d-flex justify-content-between align-items-center mb-4">
@@ -458,7 +453,7 @@ const Dashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 

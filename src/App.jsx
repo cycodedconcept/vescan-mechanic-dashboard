@@ -3,15 +3,17 @@ import { AnimatePresence } from 'framer-motion';
 import SignUp from './SignUp';
 import SignIn from './SignIn';
 import Dashboard from './pages/Dashboard';
+import Services from './pages/Services';
 import PageTransition from './PageTransition';
 import './App.css';
+
+import MainLayout from './components/MainLayout';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+      <Routes location={location}>
         <Route 
           path="/signup" 
           element={
@@ -28,17 +30,20 @@ const AnimatedRoutes = () => {
             </PageTransition>
           } 
         />
-        <Route 
-          path="/dashboard" 
-          element={
-            <PageTransition>
-              <Dashboard />
-            </PageTransition>
-          } 
-        />
+        
+        <Route element={<MainLayout />}>
+          <Route 
+            path="/dashboard" 
+            element={<Dashboard />} 
+          />
+          <Route 
+            path="/services" 
+            element={<Services />} 
+          />
+        </Route>
+
         <Route path="/" element={<Navigate to="/signup" replace />} />
       </Routes>
-    </AnimatePresence>
   );
 };
 

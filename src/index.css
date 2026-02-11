@@ -30,7 +30,7 @@ body {
   background-image: url('../src/assets/vescan-bg.jpg');
   background-size: cover;
   position: relative;
-  min-height: 100%; /* Fill available height on desktop */
+  min-height: 100%; 
 }
 
 @media (min-width: 992px) {
@@ -42,7 +42,7 @@ body {
 
 @media (max-width: 991.98px) {
   .mechanic-bg {
-    height: 50vh; /* Or whatever height looks good for the banner */
+    height: 50vh; 
     width: 100%;
     background-size: cover;
   }

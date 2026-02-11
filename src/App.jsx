@@ -1,16 +1,42 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import SignUp from './SignUp';
+import SignIn from './SignIn';
+import PageTransition from './PageTransition';
 import './App.css';
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route 
+          path="/signup" 
+          element={
+            <PageTransition>
+              <SignUp />
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/signin" 
+          element={
+            <PageTransition>
+              <SignIn />
+            </PageTransition>
+          } 
+        />
+        <Route path="/" element={<Navigate to="/signup" replace />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/" element={<Navigate to="/signup" replace />} />
-        {/* Placeholder for Sign In if needed later */}
-        <Route path="/signin" element={<div>Sign In Page (To be implemented)</div>} />
-      </Routes>
+      <AnimatedRoutes />
     </Router>
   );
 }

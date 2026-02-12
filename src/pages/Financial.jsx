@@ -13,9 +13,10 @@ import {
   Filter,
   MoreHorizontal,
   ChevronRight,
-  Share2
+  Share2,
+  DollarSign
 } from 'lucide-react';
-import { FINANCIAL_STATS, TRANSACTIONS, INVOICES } from '../data/mockData';
+import { FINANCIAL_STATS, TRANSACTIONS, INVOICES, COMMISSIONS } from '../data/mockData';
 
 const Financial = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
@@ -351,7 +352,9 @@ const Financial = () => {
                   <motion.div 
                     key={invoice.id}
                     variants={itemVariants}
-                    className="card border-0 shadow-sm rounded-4 overflow-hidden"
+                    whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(0,0,0,0.1)' }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className="card border-0 shadow-sm rounded-4 overflow-hidden cursor-pointer"
                   >
                     <div className="card-body p-4">
                       {/* Card Header: Invoice #, Status, Amount */}
@@ -390,37 +393,46 @@ const Financial = () => {
                       </div>
 
                       {/* Line Items Table-like UI */}
-                      <div className="bg-light bg-opacity-50 p-3 rounded-3 mb-3">
+                      <div className="bg-light bg-opacity-50 p-3 rounded-3 mb-3 border border-secondary border-opacity-10">
                         {invoice.items.map((item, idx) => (
-                          <div key={idx} className={`d-flex justify-content-between align-items-center ${idx < invoice.items.length - 1 ? 'border-bottom border-light pb-2 mb-2' : ''}`}>
+                          <motion.div 
+                            key={idx} 
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 * idx, duration: 0.3 }}
+                            className={`d-flex justify-content-between align-items-center ${idx < invoice.items.length - 1 ? 'border-bottom border-light pb-2 mb-2' : ''}`}
+                          >
                             <span className="small text-secondary">{item.name}</span>
                             <span className="small fw-bold text-dark">{item.price}</span>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
 
                       {/* Footer: Dates */}
                       <div className="d-flex justify-content-between align-items-center mb-4 small text-muted">
-                        <span>Issue Date: {invoice.issueDate}</span>
+                        <div className="d-flex align-items-center gap-1">
+                          <Clock size={12} className="opacity-50" />
+                          <span>Issue: {invoice.issueDate}</span>
+                        </div>
                         <span>Due: {invoice.dueDate}</span>
                       </div>
 
                       {/* Actions */}
                       <div className="d-flex gap-2">
                         <motion.button 
-                          whileHover={{ opacity: 0.9 }}
+                          whileHover={{ scale: 1.02, backgroundColor: '#002a5a' }}
                           whileTap={{ scale: 0.98 }}
-                          className="btn btn-dark-blue flex-grow-1 d-flex align-items-center justify-content-center gap-2 py-2 fw-medium rounded-2 border-0" 
+                          className="btn btn-dark flex-grow-1 d-flex align-items-center justify-content-center gap-2 py-2 fw-medium rounded-3 border-0 transition-all shadow-sm" 
                           style={{ backgroundColor: '#001B39', color: 'white', fontSize: '0.9rem' }}
                         >
-                          <Download size={18} /> Download PDF
+                          <Download size={18} /> Download
                         </motion.button>
                         <motion.button 
-                          whileHover={{ backgroundColor: '#f8f9fa' }}
-                          whileTap={{ scale: 0.98 }}
-                          className="btn btn-outline-light px-3 py-2 rounded-2 border border-light shadow-sm bg-white text-secondary"
+                          whileHover={{ scale: 1.05, backgroundColor: '#f0f4f8' }}
+                          whileTap={{ scale: 0.95 }}
+                          className="btn btn-outline-light px-3 py-2 rounded-3 border border-light shadow-sm bg-white text-secondary d-flex align-items-center justify-content-center"
                         >
-                          <Share2 size={18} /> <span className="ms-1 d-none d-sm-inline">Share</span>
+                          <Share2 size={18} />
                         </motion.button>
                       </div>
                     </div>
@@ -429,9 +441,160 @@ const Financial = () => {
               </div>
             )}
 
-            {(activeTab === 'Transactions' || activeTab === 'Commissions') && (
-              <div className="card border-0 shadow-sm rounded-4 p-5 text-center">
-                <p className="text-muted mb-0">{activeTab} content coming soon...</p>
+            {activeTab === 'Transactions' && (
+              <div className="d-flex flex-column gap-1">
+                <div className="mb-3">
+                  <h5 className="fw-bold mb-0 text-dark">All Transactions</h5>
+                  <small className="text-muted">Complete transaction history</small>
+                </div>
+
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="card border-0 shadow-sm rounded-4 overflow-hidden"
+                >
+                  <div className="card-body p-0">
+                    <div className="list-group list-group-flush">
+                      {TRANSACTIONS.map((tx, idx) => (
+                        <motion.div 
+                          key={tx.id}
+                          variants={itemVariants}
+                          whileHover={{ backgroundColor: '#fcfcfc' }}
+                          className={`list-group-item border-0 px-4 py-3 d-flex align-items-center justify-content-between ${idx < TRANSACTIONS.length - 1 ? 'border-bottom' : ''}`}
+                        >
+                          <div className="d-flex align-items-center gap-3">
+                            {/* Icon Container */}
+                            <div 
+                              className="rounded-3 d-flex align-items-center justify-content-center"
+                              style={{ 
+                                width: '40px', 
+                                height: '40px', 
+                                backgroundColor: tx.type === 'income' ? '#EFFFF4' : tx.type === 'expense' ? '#FFF5F5' : '#FFF7ED',
+                                color: tx.type === 'income' ? '#28a745' : tx.type === 'expense' ? '#EF4444' : '#F97316'
+                              }}
+                            >
+                              {tx.type === 'income' ? <ArrowDownRight size={20} /> : tx.type === 'expense' ? <ArrowUpRight size={20} /> : <Clock size={20} />}
+                            </div>
+
+                            {/* Details */}
+                            <div>
+                              <div className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>{tx.title}</div>
+                              <div className="d-flex flex-column" style={{ fontSize: '0.8rem' }}>
+                                <span className="text-muted">{tx.time}</span>
+                                <span className="text-muted opacity-50">{tx.refId}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Amount & Status */}
+                          <div className="text-end">
+                            <div 
+                              className="fw-bold" 
+                              style={{ 
+                                color: tx.type === 'income' ? '#28a745' : '#1a202c',
+                                fontSize: '1rem' 
+                              }}
+                            >
+                              {tx.amount}
+                            </div>
+                            <div 
+                              className="small fw-medium" 
+                              style={{ 
+                                color: tx.status === 'completed' ? '#22C55E' : '#CA3500',
+                                fontSize: '0.75rem'
+                              }}
+                            >
+                              {tx.status}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
+            {activeTab === 'Commissions' && (
+              <div className="d-flex flex-column gap-4">
+                {/* Total Commission Banner */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-4 d-flex align-items-center justify-content-between"
+                  style={{ backgroundColor: '#EFFFF4', border: '1px solid rgba(40, 167, 69, 0.1)' }}
+                >
+                  <div className="d-flex align-items-center gap-4">
+                    <div 
+                      className="rounded-3 d-flex align-items-center justify-content-center"
+                      style={{ width: '56px', height: '56px', backgroundColor: '#28a745', color: 'white' }}
+                    >
+                      <DollarSign size={28} />
+                    </div>
+                    <div>
+                      <div className="text-success fw-medium mb-1">Total Commission Earned</div>
+                      <h2 className="fw-bold mb-0 text-dark">₦5,680</h2>
+                    </div>
+                  </div>
+                  <div className="text-success small opacity-75 d-none d-md-block">
+                    Earn 10% commission on every auto-part sale through your referrals
+                  </div>
+                </motion.div>
+
+                <div>
+                  <h5 className="fw-bold mb-0 text-dark">Commission History</h5>
+                  <small className="text-muted">Auto-parts sales from your customers</small>
+                </div>
+
+                {/* Commissions List */}
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="d-flex flex-column gap-3"
+                >
+                  {COMMISSIONS.map((comm) => (
+                    <motion.div 
+                      key={comm.id}
+                      variants={itemVariants}
+                      whileHover={{ y: -2, boxShadow: '0 8px 20px rgba(0,0,0,0.05)' }}
+                      className="card border-0 shadow-sm rounded-4 overflow-hidden"
+                    >
+                      <div className="card-body p-4">
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                              <h6 className="fw-bold mb-0 text-dark">{comm.customer}</h6>
+                              <span 
+                                className="badge rounded-1 px-2 py-0.5" 
+                                style={{ 
+                                  fontSize: '0.65rem',
+                                  backgroundColor: comm.status === 'credited' ? '#EFFFF4' : '#FFF7ED',
+                                  color: comm.status === 'credited' ? '#28a745' : '#F97316'
+                                }}
+                              >
+                                {comm.status}
+                              </span>
+                            </div>
+                            <div className="text-secondary small mb-3">{comm.item}</div>
+                            
+                            <div className="d-flex flex-column gap-1">
+                              <span className="text-muted" style={{ fontSize: '0.75rem' }}>Order Value:</span>
+                              <span className="fw-bold text-dark small">{comm.orderValue}</span>
+                            </div>
+                          </div>
+
+                          <div className="text-end">
+                            <div className="fw-bold text-success mb-1" style={{ fontSize: '1.1rem' }}>{comm.commission}</div>
+                            <div className="text-muted small mb-3">{comm.rate}</div>
+                            <div className="text-muted" style={{ fontSize: '0.75rem' }}>{comm.date}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
               </div>
             )}
           </motion.div>

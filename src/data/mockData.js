@@ -302,7 +302,8 @@ export const TRANSACTIONS = [
     title: 'Service Payment - John Adeyemi',
     time: '2 hours ago',
     amount: '+₦28,500',
-    status: 'completed'
+    status: 'completed',
+    refId: 'INV-2024-001'
   },
   {
     id: 2,
@@ -310,7 +311,8 @@ export const TRANSACTIONS = [
     title: 'Parts Purchase - Oxygen Sensor',
     time: '3 hours ago',
     amount: '₦8,500',
-    status: 'completed'
+    status: 'completed',
+    refId: 'PRT-2024-034'
   },
   {
     id: 3,
@@ -318,7 +320,8 @@ export const TRANSACTIONS = [
     title: 'Commission - Auto Parts Sale',
     time: '5 hours ago',
     amount: '+₦2,400',
-    status: 'completed'
+    status: 'completed',
+    refId: 'COM-2024-012'
   },
   {
     id: 4,
@@ -326,7 +329,8 @@ export const TRANSACTIONS = [
     title: 'Service Payment - Sarah Ibrahim',
     time: 'Yesterday',
     amount: '+₦22,000',
-    status: 'completed'
+    status: 'completed',
+    refId: 'INV-2024-002'
   },
   {
     id: 5,
@@ -334,7 +338,8 @@ export const TRANSACTIONS = [
     title: 'Service Payment - David Okonkwo',
     time: 'Yesterday',
     amount: '+₦35,000',
-    status: 'pending'
+    status: 'pending',
+    refId: 'INV-2024-003'
   }
 ];
 
@@ -381,5 +386,48 @@ export const INVOICES = [
       { name: "Cabin Filter", price: "₦3,500" },
       { name: "Labor (1.5 hrs)", price: "₦9,000" }
     ]
+  }
+];
+
+export const COMMISSIONS = [
+  {
+    id: 1,
+    customer: "John Adeyemi",
+    status: "credited",
+    item: "Premium Brake Pads Set",
+    orderValue: "₦24,000",
+    commission: "+₦2,400",
+    rate: "10%",
+    date: "Jan 15, 2026"
+  },
+  {
+    id: 2,
+    customer: "Mary Johnson",
+    status: "credited",
+    item: "Synthetic Engine Oil 5W-40",
+    orderValue: "₦18,500",
+    commission: "+₦1,850",
+    rate: "10%",
+    date: "Jan 14, 2026"
+  },
+  {
+    id: 3,
+    customer: "Peter Obi",
+    status: "pending",
+    item: "Air Filter + Cabin Filter Combo",
+    orderValue: "₦8,900",
+    commission: "+₦890",
+    rate: "10%",
+    date: "Jan 14, 2026"
+  },
+  {
+    id: 4,
+    customer: "Grace Eze",
+    status: "credited",
+    item: "Battery (70Ah)",
+    orderValue: "₦32,000",
+    commission: "+₦3,200",
+    rate: "10%",
+    date: "Jan 13, 2026"
   }
 ];

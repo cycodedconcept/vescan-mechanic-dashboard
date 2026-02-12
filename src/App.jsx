@@ -5,6 +5,7 @@ import SignIn from './SignIn';
 import Dashboard from './pages/Dashboard';
 import Services from './pages/Services';
 import Financial from './pages/Financial';
+import Customers from './pages/Customers';
 import PageTransition from './PageTransition';
 import './App.css';
 
@@ -44,6 +45,10 @@ const AnimatedRoutes = () => {
           <Route 
             path="/financial" 
             element={<Financial />} 
+          />
+          <Route 
+            path="/customers" 
+            element={<Customers />} 
           />
         </Route>
 

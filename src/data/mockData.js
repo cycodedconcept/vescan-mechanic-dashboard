@@ -389,6 +389,67 @@ export const INVOICES = [
   }
 ];
 
+export const CUSTOMERS = [
+  {
+    id: 1,
+    name: "John Adeyemi",
+    initials: "JA",
+    rating: 5,
+    phone: "+234 803 123 4567",
+    location: "Lekki, Lagos",
+    totalServices: 12,
+    totalSpent: "₦285k",
+    lastService: "2 days ago",
+    color: "#EFFFF4",
+    textColor: "#28a745"
+  },
+  {
+    id: 2,
+    name: "Sarah Ibrahim",
+    initials: "SI",
+    rating: 5,
+    phone: "+234 805 987 6543",
+    location: "Victoria Island, Lagos",
+    totalServices: 8,
+    totalSpent: "₦156k",
+    lastService: "1 week ago",
+    color: "#EFFFF4",
+    textColor: "#28a745"
+  },
+  {
+    id: 3,
+    name: "David Okonkwo",
+    initials: "DO",
+    rating: 5,
+    phone: "+234 807 234 5678",
+    location: "Ikeja, Lagos",
+    totalServices: 15,
+    totalSpent: "₦420k",
+    lastService: "3 days ago",
+    color: "#EFFFF4",
+    textColor: "#28a745"
+  },
+  {
+    id: 4,
+    name: "Mary Johnson",
+    initials: "MJ",
+    rating: 4,
+    phone: "+234 809 345 6789",
+    location: "Ikoyi, Lagos",
+    totalServices: 6,
+    totalSpent: "₦124k",
+    lastService: "2 weeks ago",
+    color: "#EFFFF4",
+    textColor: "#28a745"
+  }
+];
+
+export const CUSTOMER_STATS = {
+  total: 4,
+  activeWeek: 12,
+  newMonth: 8
+};
+
 export const COMMISSIONS = [
   {
     id: 1,

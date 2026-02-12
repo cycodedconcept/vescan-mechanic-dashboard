@@ -283,3 +283,103 @@ export const DIAGNOSTIC_ALERTS = [
     }
   }
 ];
+
+export const FINANCIAL_STATS = {
+  balance: '₦45,230',
+  today: '₦8.5k',
+  thisWeek: '₦28.9k',
+  commission: '₦5.7k',
+  totalRevenue: '₦124.5k',
+  revenueGrowth: '+18%',
+  pending: '₦12.4k',
+  pendingCount: 2
+};
+
+export const TRANSACTIONS = [
+  {
+    id: 1,
+    type: 'income',
+    title: 'Service Payment - John Adeyemi',
+    time: '2 hours ago',
+    amount: '+₦28,500',
+    status: 'completed'
+  },
+  {
+    id: 2,
+    type: 'expense',
+    title: 'Parts Purchase - Oxygen Sensor',
+    time: '3 hours ago',
+    amount: '₦8,500',
+    status: 'completed'
+  },
+  {
+    id: 3,
+    type: 'income',
+    title: 'Commission - Auto Parts Sale',
+    time: '5 hours ago',
+    amount: '+₦2,400',
+    status: 'completed'
+  },
+  {
+    id: 4,
+    type: 'income',
+    title: 'Service Payment - Sarah Ibrahim',
+    time: 'Yesterday',
+    amount: '+₦22,000',
+    status: 'completed'
+  },
+  {
+    id: 5,
+    type: 'pending',
+    title: 'Service Payment - David Okonkwo',
+    time: 'Yesterday',
+    amount: '+₦35,000',
+    status: 'pending'
+  }
+];
+
+export const INVOICES = [
+  {
+    id: "INV-2024-001",
+    customer: "John Adeyemi",
+    car: "2020 Toyota Camry",
+    status: "Paid",
+    amount: "₦28,500",
+    issueDate: "Jan 15, 2026",
+    dueDate: "Jan 15, 2026",
+    items: [
+      { name: "Oxygen Sensor", price: "₦12,000" },
+      { name: "Air Filter", price: "₦3,500" },
+      { name: "Labor (3.5 hrs)", price: "₦13,000" }
+    ]
+  },
+  {
+    id: "INV-2024-002",
+    customer: "Sarah Ibrahim",
+    car: "2019 Honda Accord",
+    status: "Paid",
+    amount: "₦22,000",
+    issueDate: "Jan 14, 2026",
+    dueDate: "Jan 14, 2026",
+    items: [
+      { name: "Brake Pads (Front)", price: "₦15,000" },
+      { name: "Brake Fluid", price: "₦2,000" },
+      { name: "Labor (2 hrs)", price: "₦5,000" }
+    ]
+  },
+  {
+    id: "INV-2024-003",
+    customer: "David Okonkwo",
+    car: "2021 Lexus ES",
+    status: "Pending Payment",
+    amount: "₦35,000",
+    issueDate: "Jan 15, 2026",
+    dueDate: "Jan 17, 2026",
+    items: [
+      { name: "Oil Filter", price: "₦4,500" },
+      { name: "Engine Oil (5W-30)", price: "₦18,000" },
+      { name: "Cabin Filter", price: "₦3,500" },
+      { name: "Labor (1.5 hrs)", price: "₦9,000" }
+    ]
+  }
+];

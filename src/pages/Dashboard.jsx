@@ -14,81 +14,11 @@ import {
   Users
 } from 'lucide-react';
 
+import { DIAGNOSTIC_ALERTS } from '../data/mockData';
+
 const Dashboard = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
   const [selectedAlert, setSelectedAlert] = React.useState(null);
-
-  const diagnosticAlerts = [
-    {
-      id: 1,
-      vehicle: "2020 Toyota Camry",
-      owner: "John Adeyemi",
-      code: "P0420",
-      severity: "Urgent",
-      severityBadge: "bg-danger",
-      description: "Catalyst System Efficiency Below Threshold",
-      time: "15 mins ago",
-      iconColor: "text-danger",
-      iconBg: "bg-danger",
-      details: {
-        errorCode: "P0428",
-        severityText: "High Severity",
-        severityColor: "bg-danger bg-opacity-10 text-danger",
-        actions: [
-          "Inspect oxygen sensor and exhaust system",
-          "Check for exhaust leaks",
-          "Verify catalytic converter efficiency",
-          "Run full diagnostic scan"
-        ],
-        timeReceived: "10:45 AM"
-      }
-    },
-    {
-      id: 2,
-      vehicle: "2019 Honda Accord",
-      owner: "Sarah Ibrahim",
-      code: "P0171",
-      severity: null,
-      description: "System Too Lean (Bank 1)",
-      time: "1 hour ago",
-      iconColor: "text-warning",
-      iconBg: "bg-warning",
-      details: {
-        errorCode: "P0171",
-        severityText: "Medium Severity",
-        severityColor: "bg-warning bg-opacity-10 text-warning",
-        actions: [
-          "Check mass air flow sensor",
-          "Inspect vacuum lines for leaks",
-          "Check fuel pressure"
-        ],
-        timeReceived: "09:30 AM"
-      }
-    },
-    {
-      id: 3,
-      vehicle: "2021 Lexus ES",
-      owner: "David Okonkwo",
-      code: "P0300",
-      severity: "Urgent",
-      severityBadge: "bg-danger",
-      description: "Random/Multiple Cylinder Misfire Detected",
-      time: "2 hours ago",
-      iconColor: "text-danger",
-      iconBg: "bg-danger",
-      details: {
-        errorCode: "P0300",
-        severityText: "High Severity",
-        severityColor: "bg-danger bg-opacity-10 text-danger",
-        actions: [
-          "Check spark plugs and coils",
-          "Inspect fuel injectors",
-          "Compression test cylinders"
-        ],
-        timeReceived: "08:15 AM"
-      }
-    }
-  ];
 
   return (
     <>
@@ -213,7 +143,7 @@ const Dashboard = () => {
           </div>
           <div className="card-body">
             <div className="vstack gap-3">
-              {diagnosticAlerts.map((alert) => (
+              {DIAGNOSTIC_ALERTS.map((alert) => (
                 <motion.div 
                   key={alert.id}
                   whileHover={{ scale: 1.02, backgroundColor: 'rgba(248,249,250, 0.8)' }}

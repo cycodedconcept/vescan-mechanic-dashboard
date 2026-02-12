@@ -137,13 +137,13 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#2B7FFF' }}>
                   <Clock size={24} />
                 </div>
               </div>
               <h3 className="fw-bold mb-1">8</h3>
               <p className="text-secondary mb-0">Active Jobs</p>
-              <small className="text-success">+2 today</small>
+              <small className="text-secondary" style={{ fontSize: '0.8rem' }}>+2 today</small>
             </motion.div>
           </div>
           <div className="col-md-3">
@@ -155,13 +155,13 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-success bg-opacity-10 p-3 rounded-3 text-success">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#00C950' }}>
                   <CheckCircle2 size={24} />
                 </div>
               </div>
               <h3 className="fw-bold mb-1">5</h3>
               <p className="text-secondary mb-0">Completed Today</p>
-              <small className="text-secondary">3 pending payment</small>
+              <small className="text-secondary" style={{ fontSize: '0.8rem' }}>3 pending payment</small>
             </motion.div>
           </div>
           <div className="col-md-3">
@@ -173,13 +173,13 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-info bg-opacity-10 p-3 rounded-3 text-info">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#AD46FF' }}>
                   <Wallet size={24} />
                 </div>
               </div>
               <h3 className="fw-bold mb-1">₦45,230</h3>
               <p className="text-secondary mb-0">Wallet Balance</p>
-              <small className="text-secondary">+₦12,400 this week</small>
+              <small className="text-secondary" style={{ fontSize: '0.8rem' }}>+₦12,400 this week</small>
             </motion.div>
           </div>
           <div className="col-md-3">
@@ -191,7 +191,7 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-warning bg-opacity-10 p-3 rounded-3 text-warning">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#FF6900' }}>
                   <AlertTriangle size={24} />
                 </div>
               </div>

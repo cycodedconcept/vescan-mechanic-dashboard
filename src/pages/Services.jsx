@@ -18,6 +18,7 @@ import {
 const Services = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
   const [activeTab, setActiveTab] = useState('active');
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const stats = [
     { title: 'Active Jobs', value: '3', color: 'bg-primary' },
@@ -302,16 +303,40 @@ const Services = () => {
                         {job.status === 'Paused' ? 'Resume' : 'Pause'}
                       </motion.button>
                       <motion.button 
-                        whileHover={{ scale: 1.02, backgroundColor: '#f8f9fa' }}
-                        whileTap={{ scale: 0.98 }}
-                        className="btn btn-outline-secondary px-4"
+                        initial={{ backgroundColor: '#ffffff', color: '#6c757d', borderColor: '#dee2e6' }}
+                        whileHover={{ 
+                          scale: 1.03, 
+                          backgroundColor: '#00BFFF', 
+                          color: '#ffffff', 
+                          borderColor: '#00BFFF',
+                          boxShadow: '0 4px 15px rgba(0, 191, 255, 0.25)' 
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        className="btn border px-4 shadow-none"
+                        onClick={(e) => {
+                          e.target.blur();
+                          setSelectedJob(job);
+                        }}
                       >
                         Update
                       </motion.button>
                       <motion.button 
-                        whileHover={{ scale: 1.02, backgroundColor: '#f8f9fa' }}
-                        whileTap={{ scale: 0.98 }}
-                        className="btn btn-outline-secondary px-4"
+                         initial={{ backgroundColor: '#ffffff', color: '#6c757d', borderColor: '#dee2e6' }}
+                         whileHover={{ 
+                           scale: 1.03, 
+                           backgroundColor: '#001F3F', 
+                           color: '#ffffff', 
+                           borderColor: '#001F3F',
+                           boxShadow: '0 4px 15px rgba(0, 31, 63, 0.25)' 
+                         }}
+                         whileTap={{ scale: 0.95 }}
+                         transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                         className="btn border px-4 shadow-none"
+                         onClick={(e) => {
+                           e.target.blur();
+                           setSelectedJob(job);
+                         }}
                       >
                          Details
                       </motion.button>
@@ -333,6 +358,104 @@ const Services = () => {
             )}
           </motion.div>
         </div>
+
+      {/* Job Details Modal */}
+      <AnimatePresence>
+        {selectedJob && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+            onClick={() => setSelectedJob(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white rounded-3 shadow-lg overflow-hidden"
+              style={{ width: '800px', maxWidth: '95%' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-4 border-bottom d-flex justify-content-between align-items-start">
+                <div>
+                  <h4 className="fw-bold mb-1">Job Details</h4>
+                  <p className="text-secondary mb-0">{selectedJob.car}</p>
+                </div>
+                <button onClick={() => setSelectedJob(null)} className="btn btn-link text-secondary p-0">
+                  <Menu size={24} style={{ transform: 'rotate(45deg)' }} /> {/* Using Menu as X icon substitute or import X */}
+                </button>
+              </div>
+
+              <div className="p-4" style={{ backgroundColor: '#fff', maxHeight: '70vh', overflowY: 'auto' }}>
+                <div className="row g-4 mb-4">
+                  <div className="col-md-6">
+                    <label className="text-secondary small mb-1">Customer</label>
+                    <div className="fw-bold fs-5">{selectedJob.customer}</div>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-secondary small mb-1">Status</label>
+                    <div>
+                      <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                        {selectedJob.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="col-12">
+                    <label className="text-secondary small mb-1">Service Type</label>
+                    <div className="fw-bold fs-5">{selectedJob.service}</div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="text-secondary small mb-1">Start Time</label>
+                    <div className="fw-bold fs-5">{selectedJob.started}</div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="text-secondary small mb-1">Labor Hours</label>
+                    <div className="fw-bold fs-5">{selectedJob.laborTime}</div>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="text-secondary small mb-1">Total Amount</label>
+                    <div className="fw-bold fs-5">{selectedJob.price}</div>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-secondary small mb-2">Parts Used</label>
+                  <div className="d-flex flex-wrap gap-2">
+                    {selectedJob.parts.length > 0 ? selectedJob.parts.map((part, i) => (
+                      <span key={i} className="bg-light border px-3 py-2 rounded-2">
+                        {part}
+                      </span>
+                    )) : <span className="text-muted fst-italic">No parts recorded</span>}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="text-secondary small mb-2">Progress</label>
+                  <div className="progress mb-2" style={{ height: '12px' }}>
+                    <div 
+                      className="progress-bar" 
+                      role="progressbar" 
+                      style={{ width: `${selectedJob.progress}%`, backgroundColor: '#00BFFF' }}
+                    ></div>
+                  </div>
+                  <div className="text-secondary small">{selectedJob.progress}% Complete</div>
+                </div>
+              </div>
+
+              <div className="p-4 border-top bg-white d-flex gap-3 align-items-center">
+                 <button className="btn btn-primary flex-grow-1 py-3 border-0 fw-medium text-white" style={{ backgroundColor: '#00BFFF', fontSize: '1.1rem' }}>
+                    Update Progress
+                 </button>
+                 <button onClick={() => setSelectedJob(null)} className="btn btn-white border px-4 py-3 fw-medium bg-white text-secondary">
+                    Close
+                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

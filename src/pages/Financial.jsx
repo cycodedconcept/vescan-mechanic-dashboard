@@ -45,20 +45,19 @@ const Financial = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex-grow-1 d-flex flex-column h-100 overflow-hidden bg-light"
+      className="flex-grow-1 d-flex flex-column h-100 overflow-hidden"
+      style={{ backgroundColor: '#F7FAFC' }}
     >
       {/* Standard White Top Bar */}
       <header className="bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-shrink-0">
         <div className="d-flex align-items-center gap-3">
           {!isSidebarOpen && (
-            <motion.button 
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={toggleSidebar} 
-              className="btn btn-link text-dark p-0"
+            <button 
+              onClick={toggleSidebar}
+              className="btn btn-link p-0 text-dark me-2"
             >
               <Menu size={24} />
-            </motion.button>
+            </button>
           )}
           <div>
             <h5 className="fw-bold mb-0">Financial Tools</h5>

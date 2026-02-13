@@ -40,7 +40,10 @@ const Services = () => {
         <header className="bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-shrink-0">
           <div className="d-flex align-items-center gap-3">
             {!isSidebarOpen && (
-              <button onClick={toggleSidebar} className="btn btn-link text-dark p-0">
+              <button 
+                onClick={toggleSidebar} 
+                className="btn btn-link p-0 text-dark me-2"
+              >
                 <Menu size={24} />
               </button>
             )}

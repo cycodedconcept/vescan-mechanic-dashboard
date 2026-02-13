@@ -395,52 +395,168 @@ export const CUSTOMERS = [
     name: "John Adeyemi",
     initials: "JA",
     rating: 5,
+    customerSince: "Jan 2025",
     phone: "+234 803 123 4567",
+    email: "john.adeyemi@email.com",
     location: "Lekki, Lagos",
     totalServices: 12,
     totalSpent: "₦285k",
     lastService: "2 days ago",
+    vehiclesCount: 1,
     color: "#EFFFF4",
-    textColor: "#28a745"
+    textColor: "#28a745",
+    vehicles: [
+      {
+        id: 1,
+        model: "2020 Toyota Camry",
+        plate: "ABC-123-XY",
+        vin: "JT2BF18K8X8123456",
+        mileage: "45,000 km",
+        lastServiceDate: "2 days ago",
+        nextServiceDate: "Feb 15"
+      }
+    ],
+    serviceHistory: [
+      {
+        id: 1,
+        title: "Engine Diagnostic & Repair",
+        car: "2020 Toyota Camry",
+        date: "Jan 13, 2026",
+        amount: "₦28,500",
+        status: "Paid"
+      },
+      {
+        id: 2,
+        title: "Oil Change",
+        car: "2020 Toyota Camry",
+        date: "Dec 28, 2025",
+        amount: "₦12,000",
+        status: "Paid"
+      },
+      {
+        id: 3,
+        title: "Brake Service",
+        car: "2020 Toyota Camry",
+        date: "Nov 15, 2025",
+        amount: "₦35,000",
+        status: "Paid"
+      }
+    ],
+    notes: "Prefers appointments in the afternoon. Always wants detailed explanations of work done."
   },
   {
     id: 2,
     name: "Sarah Ibrahim",
     initials: "SI",
     rating: 5,
+    customerSince: "Mar 2025",
     phone: "+234 805 987 6543",
+    email: "sarah.ibrahim@email.com",
     location: "Victoria Island, Lagos",
     totalServices: 8,
     totalSpent: "₦156k",
     lastService: "1 week ago",
+    vehiclesCount: 1,
     color: "#EFFFF4",
-    textColor: "#28a745"
+    textColor: "#28a745",
+    vehicles: [
+      {
+        id: 1,
+        model: "2021 Honda Accord",
+        plate: "LAG-456-ZZ",
+        vin: "1HGCR2F5XLA012345",
+        mileage: "22,500 km",
+        lastServiceDate: "1 week ago",
+        nextServiceDate: "Mar 10"
+      }
+    ],
+    serviceHistory: [
+      {
+        id: 1,
+        title: "Tire Rotation & Balance",
+        car: "2021 Honda Accord",
+        date: "Feb 05, 2026",
+        amount: "₦15,000",
+        status: "Paid"
+      }
+    ],
+    notes: "Very particular about hygiene inside the car."
   },
   {
     id: 3,
     name: "David Okonkwo",
     initials: "DO",
     rating: 5,
+    customerSince: "Jan 2025",
     phone: "+234 807 234 5678",
+    email: "david.okonkwo@email.com",
     location: "Ikeja, Lagos",
     totalServices: 15,
     totalSpent: "₦420k",
     lastService: "3 days ago",
+    vehiclesCount: 1,
     color: "#EFFFF4",
-    textColor: "#28a745"
+    textColor: "#28a745",
+    vehicles: [
+      {
+        id: 1,
+        model: "2019 Lexus ES 350",
+        plate: "IKJ-789-QA",
+        vin: "58ABZ1B1KLU098765",
+        mileage: "65,000 km",
+        lastServiceDate: "3 days ago",
+        nextServiceDate: "May 20"
+      }
+    ],
+    serviceHistory: [
+      {
+        id: 1,
+        title: "Full Engine Overhaul",
+        car: "2019 Lexus ES 350",
+        date: "Jan 10, 2026",
+        amount: "₦250,500",
+        status: "Paid"
+      }
+    ],
+    notes: "Corporate client, requires formal invoices for every job."
   },
   {
     id: 4,
     name: "Mary Johnson",
     initials: "MJ",
     rating: 4,
+    customerSince: "Jul 2025",
     phone: "+234 809 345 6789",
+    email: "mary.johnson@email.com",
     location: "Ikoyi, Lagos",
     totalServices: 6,
     totalSpent: "₦124k",
     lastService: "2 weeks ago",
+    vehiclesCount: 1,
     color: "#EFFFF4",
-    textColor: "#28a745"
+    textColor: "#28a745",
+    vehicles: [
+      {
+        id: 1,
+        model: "2022 Mercedes-Benz C300",
+        plate: "IKY-321-LB",
+        vin: "WDDWF4JB3LA112233",
+        mileage: "12,000 km",
+        lastServiceDate: "2 weeks ago",
+        nextServiceDate: "Jul 15"
+      }
+    ],
+    serviceHistory: [
+      {
+        id: 1,
+        title: "Scheduled Maintenance",
+        car: "2022 Mercedes-Benz C300",
+        date: "Jan 30, 2026",
+        amount: "₦45,000",
+        status: "Paid"
+      }
+    ],
+    notes: "New customer, referred by John Adeyemi."
   }
 ];
 
@@ -492,3 +608,84 @@ export const COMMISSIONS = [
     date: "Jan 13, 2026"
   }
 ];
+
+export const VEHICLES = [
+  {
+    id: 1,
+    year: '2020',
+    make: 'Toyota',
+    model: 'Camry',
+    plate: 'ABC-123-XY',
+    vin: 'JT2BF18K8X0123456',
+    owner: 'John Adeyemi',
+    mileage: '45,000 km',
+    transmission: 'Automatic',
+    fuelType: 'Gasoline',
+    lastService: 'Jan 13, 2026',
+    nextService: 'Feb 15, 2026',
+    serviceCount: 12,
+    diagnosticCount: 3,
+    status: 'Active',
+    errorCodes: ['P0420']
+  },
+  {
+    id: 2,
+    year: '2019',
+    make: 'Honda',
+    model: 'Accord',
+    plate: 'XYZ-456-AB',
+    vin: '1HGCV1F30JA123456',
+    owner: 'Sarah Ibrahim',
+    mileage: '38,000 km',
+    transmission: 'Automatic',
+    fuelType: 'Gasoline',
+    lastService: 'Jan 8, 2026',
+    nextService: 'Mar 1, 2026',
+    serviceCount: 8,
+    diagnosticCount: 1,
+    status: 'Active',
+    errorCodes: []
+  },
+  {
+    id: 3,
+    year: '2018',
+    make: 'Mercedes-Benz',
+    model: 'C-Class',
+    plate: 'GHI-321-EF',
+    vin: 'WDDWF8EB5JR123456',
+    owner: 'Mary Johnson',
+    mileage: '52,000 km',
+    transmission: 'Automatic',
+    fuelType: 'Gasoline',
+    lastService: 'Dec 29, 2025',
+    nextService: 'Feb 1, 2026',
+    serviceCount: 12,
+    diagnosticCount: 0,
+    status: 'Maintenance Due',
+    errorCodes: []
+  },
+  {
+    id: 4,
+    year: '2020',
+    make: 'BMW',
+    model: 'X5',
+    plate: 'JKL-654-GH',
+    vin: '5UXKR0C56L9123456',
+    owner: 'Peter Obi',
+    mileage: '35,000 km',
+    transmission: 'Automatic',
+    fuelType: 'Diesel',
+    lastService: 'Dec 15, 2025',
+    nextService: 'Jan 20, 2026',
+    serviceCount: 9,
+    diagnosticCount: 1,
+    status: 'Maintenance Due',
+    errorCodes: ['P0300']
+  }
+];
+
+export const VEHICLE_STATS = {
+  total: 5,
+  active: 3,
+  dueService: 2
+};

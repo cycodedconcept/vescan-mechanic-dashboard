@@ -14,81 +14,11 @@ import {
   Users
 } from 'lucide-react';
 
+import { DIAGNOSTIC_ALERTS } from '../data/mockData';
+
 const Dashboard = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
   const [selectedAlert, setSelectedAlert] = React.useState(null);
-
-  const diagnosticAlerts = [
-    {
-      id: 1,
-      vehicle: "2020 Toyota Camry",
-      owner: "John Adeyemi",
-      code: "P0420",
-      severity: "Urgent",
-      severityBadge: "bg-danger",
-      description: "Catalyst System Efficiency Below Threshold",
-      time: "15 mins ago",
-      iconColor: "text-danger",
-      iconBg: "bg-danger",
-      details: {
-        errorCode: "P0428",
-        severityText: "High Severity",
-        severityColor: "bg-danger bg-opacity-10 text-danger",
-        actions: [
-          "Inspect oxygen sensor and exhaust system",
-          "Check for exhaust leaks",
-          "Verify catalytic converter efficiency",
-          "Run full diagnostic scan"
-        ],
-        timeReceived: "10:45 AM"
-      }
-    },
-    {
-      id: 2,
-      vehicle: "2019 Honda Accord",
-      owner: "Sarah Ibrahim",
-      code: "P0171",
-      severity: null,
-      description: "System Too Lean (Bank 1)",
-      time: "1 hour ago",
-      iconColor: "text-warning",
-      iconBg: "bg-warning",
-      details: {
-        errorCode: "P0171",
-        severityText: "Medium Severity",
-        severityColor: "bg-warning bg-opacity-10 text-warning",
-        actions: [
-          "Check mass air flow sensor",
-          "Inspect vacuum lines for leaks",
-          "Check fuel pressure"
-        ],
-        timeReceived: "09:30 AM"
-      }
-    },
-    {
-      id: 3,
-      vehicle: "2021 Lexus ES",
-      owner: "David Okonkwo",
-      code: "P0300",
-      severity: "Urgent",
-      severityBadge: "bg-danger",
-      description: "Random/Multiple Cylinder Misfire Detected",
-      time: "2 hours ago",
-      iconColor: "text-danger",
-      iconBg: "bg-danger",
-      details: {
-        errorCode: "P0300",
-        severityText: "High Severity",
-        severityColor: "bg-danger bg-opacity-10 text-danger",
-        actions: [
-          "Check spark plugs and coils",
-          "Inspect fuel injectors",
-          "Compression test cylinders"
-        ],
-        timeReceived: "08:15 AM"
-      }
-    }
-  ];
 
   return (
     <>
@@ -104,7 +34,10 @@ const Dashboard = () => {
         <header className="d-flex justify-content-between align-items-center mb-4">
           <div className="d-flex align-items-center gap-3">
             {!isSidebarOpen && (
-              <button onClick={toggleSidebar} className="btn btn-link text-dark p-0 me-2">
+              <button 
+                onClick={toggleSidebar} 
+                className="btn btn-link p-0 text-dark me-2"
+              >
                 <Menu size={24} />
               </button>
             )}
@@ -137,13 +70,13 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-primary bg-opacity-10 p-3 rounded-3 text-primary">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#2B7FFF' }}>
                   <Clock size={24} />
                 </div>
               </div>
               <h3 className="fw-bold mb-1">8</h3>
               <p className="text-secondary mb-0">Active Jobs</p>
-              <small className="text-success">+2 today</small>
+              <small className="text-secondary" style={{ fontSize: '0.8rem' }}>+2 today</small>
             </motion.div>
           </div>
           <div className="col-md-3">
@@ -155,13 +88,13 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-success bg-opacity-10 p-3 rounded-3 text-success">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#00C950' }}>
                   <CheckCircle2 size={24} />
                 </div>
               </div>
               <h3 className="fw-bold mb-1">5</h3>
               <p className="text-secondary mb-0">Completed Today</p>
-              <small className="text-secondary">3 pending payment</small>
+              <small className="text-secondary" style={{ fontSize: '0.8rem' }}>3 pending payment</small>
             </motion.div>
           </div>
           <div className="col-md-3">
@@ -173,13 +106,13 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-info bg-opacity-10 p-3 rounded-3 text-info">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#AD46FF' }}>
                   <Wallet size={24} />
                 </div>
               </div>
               <h3 className="fw-bold mb-1">₦45,230</h3>
               <p className="text-secondary mb-0">Wallet Balance</p>
-              <small className="text-secondary">+₦12,400 this week</small>
+              <small className="text-secondary" style={{ fontSize: '0.8rem' }}>+₦12,400 this week</small>
             </motion.div>
           </div>
           <div className="col-md-3">
@@ -191,7 +124,7 @@ const Dashboard = () => {
               className="card border-0 shadow-sm h-100 p-3"
             >
               <div className="d-flex align-items-start justify-content-between mb-3">
-                <div className="bg-warning bg-opacity-10 p-3 rounded-3 text-warning">
+                <div className="p-3 rounded-3 text-white" style={{ backgroundColor: '#FF6900' }}>
                   <AlertTriangle size={24} />
                 </div>
               </div>
@@ -213,7 +146,7 @@ const Dashboard = () => {
           </div>
           <div className="card-body">
             <div className="vstack gap-3">
-              {diagnosticAlerts.map((alert) => (
+              {DIAGNOSTIC_ALERTS.map((alert) => (
                 <motion.div 
                   key={alert.id}
                   whileHover={{ scale: 1.02, backgroundColor: 'rgba(248,249,250, 0.8)' }}

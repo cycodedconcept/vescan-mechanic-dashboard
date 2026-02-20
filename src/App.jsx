@@ -7,7 +7,9 @@ import Services from './pages/Services';
 import Financial from './pages/Financial';
 import Customers from './pages/Customers';
 import Vehicles from './pages/Vehicles';
+import Ecommerce from './pages/Ecommerce';
 import PageTransition from './PageTransition';
+import AuthLayout from './components/AuthLayout';
 import './App.css';
 
 import MainLayout from './components/MainLayout';
@@ -16,24 +18,29 @@ const AnimatedRoutes = () => {
   const location = useLocation();
 
   return (
-      <Routes location={location}>
-        <Route 
-          path="/signup" 
-          element={
-            <PageTransition>
-              <SignUp />
-            </PageTransition>
-          } 
-        />
-        <Route 
-          path="/signin" 
-          element={
-            <PageTransition>
-              <SignIn />
-            </PageTransition>
-          } 
-        />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Auth Routes with Shared Layout */}
+        <Route element={<AuthLayout />}>
+          <Route 
+            path="/signup" 
+            element={
+              <PageTransition>
+                <SignUp />
+              </PageTransition>
+            } 
+          />
+          <Route 
+            path="/signin" 
+            element={
+              <PageTransition>
+                <SignIn />
+              </PageTransition>
+            } 
+          />
+        </Route>
         
+        {/* Protected Dashboard Routes */}
         <Route element={<MainLayout />}>
           <Route 
             path="/dashboard" 
@@ -55,10 +62,15 @@ const AnimatedRoutes = () => {
             path="/vehicles" 
             element={<Vehicles />} 
           />
+          <Route 
+            path="/ecommerce" 
+            element={<Ecommerce />} 
+          />
         </Route>
 
         <Route path="/" element={<Navigate to="/signup" replace />} />
       </Routes>
+    </AnimatePresence>
   );
 };
 

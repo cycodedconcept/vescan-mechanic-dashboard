@@ -62,6 +62,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             className="d-flex flex-column text-white" 
             style={{ 
               backgroundColor: '#001F3F', 
+              flexShrink: 0,
               overflow: 'hidden', 
               whiteSpace: 'nowrap',
               position: isMobile ? 'fixed' : 'relative',
@@ -71,7 +72,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               left: 0
             }}
           >
-            <div style={{ width: '280px', height: '100%', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ width: '100%', height: '100%', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
               <div className="d-flex justify-content-between align-items-start mb-5 top-logo">
                 <div>
                   <h4 className="fw-bold mb-1 fs-4">Vescan</h4>
@@ -91,6 +92,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                     <Link
                       key={index}
                       to={item.path} 
+                      onClick={() => isMobile && toggleSidebar()}
                       className={`nav-link d-flex align-items-center gap-3 px-3 py-3 rounded-2 ${
                         isActive 
                           ? 'text-white' 
@@ -135,10 +137,17 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                   </div>
                   
                   <div className="d-flex flex-column gap-2">
-                    <a href="#" className="nav-link d-flex align-items-center gap-3 text-white opacity-75 hover-opacity-100 py-1">
+                    <Link 
+                      to="/settings" 
+                      className="nav-link d-flex align-items-center gap-3 py-1 text-decoration-none"
+                      style={{ 
+                        color: location.pathname === '/settings' ? 'white' : 'rgba(255, 255, 255, 0.75)',
+                        fontWeight: location.pathname === '/settings' ? '500' : '400'
+                      }}
+                    >
                       <Settings size={18} />
                       <span style={{ fontSize: '0.9rem' }}>Settings</span>
-                    </a>
+                    </Link>
                     <a href="#" className="nav-link d-flex align-items-center gap-3 text-white opacity-75 hover-opacity-100 py-1">
                       <LogOut size={18} />
                       <span style={{ fontSize: '0.9rem' }}>Logout</span>

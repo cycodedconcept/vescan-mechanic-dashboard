@@ -137,10 +137,17 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                   </div>
                   
                   <div className="d-flex flex-column gap-2">
-                    <a href="#" className="nav-link d-flex align-items-center gap-3 text-white opacity-75 hover-opacity-100 py-1">
+                    <Link 
+                      to="/settings" 
+                      className="nav-link d-flex align-items-center gap-3 py-1 text-decoration-none"
+                      style={{ 
+                        color: location.pathname === '/settings' ? 'white' : 'rgba(255, 255, 255, 0.75)',
+                        fontWeight: location.pathname === '/settings' ? '500' : '400'
+                      }}
+                    >
                       <Settings size={18} />
                       <span style={{ fontSize: '0.9rem' }}>Settings</span>
-                    </a>
+                    </Link>
                     <a href="#" className="nav-link d-flex align-items-center gap-3 text-white opacity-75 hover-opacity-100 py-1">
                       <LogOut size={18} />
                       <span style={{ fontSize: '0.9rem' }}>Logout</span>

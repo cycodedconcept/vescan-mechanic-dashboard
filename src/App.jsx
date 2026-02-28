@@ -16,6 +16,7 @@ import AuthLayout from './components/AuthLayout';
 import './App.css';
 
 import MainLayout from './components/MainLayout';
+import { ThemeProvider } from './context/ThemeContext';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -91,9 +92,11 @@ const AnimatedRoutes = () => {
 
 function App() {
   return (
-    <Router>
-      <AnimatedRoutes />
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <AnimatedRoutes />
+      </Router>
+    </ThemeProvider>
   );
 }
 

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
+import TopHeader from '../components/TopHeader';
 import {
   Bell,
   Menu,
@@ -72,39 +73,9 @@ const Vehicles = () => {
   }
 
   return (
-    <div className="d-flex flex-column h-100 bg-light overflow-hidden">
+    <div className="d-flex flex-column h-100 overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Header */}
-      <header className="bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-shrink-0">
-        <div className="d-flex align-items-center gap-3">
-          {!isSidebarOpen && (
-            <button 
-              onClick={toggleSidebar} 
-              className="btn btn-link p-0 text-dark me-2"
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          <div>
-            <h5 className="fw-bold mb-0">Vehicle Management</h5>
-            <small className="text-muted">Manage your business operations</small>
-          </div>
-        </div>
-        <motion.div 
-          className="d-flex align-items-center gap-3"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          <button className="btn btn-light position-relative rounded-circle p-2">
-            <Bell size={20} />
-            <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-              <span className="visually-hidden">New alerts</span>
-            </span>
-          </button>
-          <div className="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px' }}>
-            JD
-          </div>
-        </motion.div>
-      </header>
+      <TopHeader title="Vehicle Management" />
 
       {/* Main Content */}
       <div className="flex-grow-1 overflow-auto p-4">
@@ -168,13 +139,15 @@ const Vehicles = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-white p-3 rounded-3 shadow-sm mb-4"
+          className="p-3 rounded-3 shadow-sm mb-4"
+          style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
         >
            <div className="position-relative mb-3">
-              <Search className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" size={18} />
+              <Search className="position-absolute top-50 start-0 translate-middle-y ms-3" size={18} style={{ color: 'var(--text-secondary)' }} />
               <input 
                 type="text" 
-                className="form-control ps-5 border-light bg-light" 
+                className="form-control ps-5 border-light" 
+                style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
                 placeholder="Search by make, model, plate, VIN..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -216,6 +189,7 @@ const Vehicles = () => {
                  exit={{ opacity: 0, scale: 0.95 }}
                  whileHover={{ y: -5, boxShadow: '0 15px 30px rgba(0,0,0,0.1)' }}
                  className="card border-0 shadow-sm rounded-4 overflow-hidden"
+                 style={{ backgroundColor: 'var(--card-bg)' }}
                >
                 <div className="card-body p-4">
                   {/* Card Header */}
@@ -223,14 +197,14 @@ const Vehicles = () => {
                     <div className="d-flex align-items-start gap-3">
                       <div 
                         className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                        style={{ width: '48px', height: '48px', backgroundColor: '#E0F2FE', color: brandBlue }}
+                        style={{ width: '48px', height: '48px', backgroundColor: 'var(--bg-tertiary)', color: brandBlue }}
                       >
                         <Car size={24} />
                       </div>
                       <div>
-                        <h6 className="fw-bold mb-1 text-dark" style={{ fontSize: '1.1rem' }}>{vehicle.year} {vehicle.make} {vehicle.model}</h6>
-                        <div className="text-muted small mb-1 fw-medium">{vehicle.plate}</div>
-                        <div className="small text-secondary fw-medium">
+                        <h6 className="fw-bold mb-1" style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{vehicle.year} {vehicle.make} {vehicle.model}</h6>
+                        <div className="text-secondary small mb-1 fw-medium" style={{ color: 'var(--text-secondary)' }}>{vehicle.plate}</div>
+                        <div className="small fw-medium" style={{ color: 'var(--text-muted)' }}>
                           Owner: {vehicle.owner}
                         </div>
                       </div>
@@ -248,27 +222,27 @@ const Vehicles = () => {
                   {/* Details Grid (2x2) */}
                   <div className="row g-3 mb-4">
                     <div className="col-6">
-                       <div className="p-3 bg-light rounded-3 h-100" style={{ backgroundColor: '#F8FAFC' }}>
-                          <small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>VIN</small>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>{vehicle.vin}</div>
+                       <div className="p-3 rounded-3 h-100" style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
+                          <small className="text-secondary d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>VIN</small>
+                          <div className="fw-bold" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{vehicle.vin}</div>
                        </div>
                     </div>
                     <div className="col-6">
-                        <div className="p-3 bg-light rounded-3 h-100" style={{ backgroundColor: '#F8FAFC' }}>
-                          <small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Mileage</small>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>{vehicle.mileage}</div>
+                        <div className="p-3 rounded-3 h-100" style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
+                          <small className="text-secondary d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Mileage</small>
+                          <div className="fw-bold" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{vehicle.mileage}</div>
                        </div>
                     </div>
                     <div className="col-6">
-                        <div className="p-3 bg-light rounded-3 h-100" style={{ backgroundColor: '#F8FAFC' }}>
-                          <small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Transmission</small>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>{vehicle.transmission}</div>
+                        <div className="p-3 rounded-3 h-100" style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
+                          <small className="text-secondary d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Transmission</small>
+                          <div className="fw-bold" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{vehicle.transmission}</div>
                        </div>
                     </div>
                     <div className="col-6">
-                        <div className="p-3 bg-light rounded-3 h-100" style={{ backgroundColor: '#F8FAFC' }}>
-                          <small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Fuel Type</small>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>{vehicle.fuelType}</div>
+                        <div className="p-3 rounded-3 h-100" style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
+                          <small className="text-secondary d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Fuel Type</small>
+                          <div className="fw-bold" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{vehicle.fuelType}</div>
                        </div>
                     </div>
                   </div>
@@ -281,11 +255,11 @@ const Vehicles = () => {
                      </div>
                      <div className="d-flex justify-content-between">
                         <div>
-                           <small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Last Service</small>
+                           <small className="d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>Last Service</small>
                            <div className="fw-bold text-primary small" style={{ fontSize: '0.85rem' }}>{vehicle.lastService}</div>
                         </div>
                         <div className="text-start">
-                           <small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500 }}>Next Service</small>
+                           <small className="d-block mb-1" style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>Next Service</small>
                            <div className="fw-bold text-primary small" style={{ fontSize: '0.85rem' }}>{vehicle.nextService}</div>
                         </div>
                      </div>
@@ -313,13 +287,13 @@ const Vehicles = () => {
                   )}
 
                   {/* Footer Stats (Services/Diagnostics) */}
-                  <div className="d-flex align-items-center gap-4 mb-4 text-secondary">
+                  <div className="d-flex align-items-center gap-4 mb-4" style={{ color: 'var(--text-secondary)' }}>
                      <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.85rem', fontWeight: 500 }}>
-                        <CheckCircle2 size={16} className="text-muted" />
+                        <CheckCircle2 size={16} style={{ color: 'var(--text-muted)' }} />
                         <span>{vehicle.serviceCount} Services</span>
                      </div>
                      <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.85rem', fontWeight: 500 }}>
-                        <AlertTriangle size={16} className="text-muted" />
+                        <AlertTriangle size={16} style={{ color: 'var(--text-muted)' }} />
                         <span>{vehicle.diagnosticCount} Diagnostics</span>
                      </div>
                   </div>

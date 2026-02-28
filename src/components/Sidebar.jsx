@@ -61,7 +61,9 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="d-flex flex-column text-white" 
             style={{ 
-              backgroundColor: '#001F3F', 
+              backgroundColor: 'var(--sidebar-bg)', 
+              borderColor: 'var(--border-color)',
+              color: '#fff',
               flexShrink: 0,
               overflow: 'hidden', 
               whiteSpace: 'nowrap',
@@ -127,7 +129,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                   style={{ backgroundColor: 'rgba(23, 42, 69, 0.5)' }} // Slightly lighter/tinted bg for the card
                 >
                   <div className="d-flex align-items-center gap-3 mb-4">
-                    <div className="bg-white text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', fontSize: '0.9rem' }}>
+                    <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', fontSize: '0.9rem', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
                       JD
                     </div>
                     <div className="d-flex flex-column">

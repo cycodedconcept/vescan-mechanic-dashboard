@@ -10,7 +10,7 @@ const MainLayout = () => {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="d-flex h-100vh w-100 overflow-hidden bg-light" style={{ fontFamily: 'Arial, sans-serif', height: '100vh' }}>
+    <div className="d-flex w-100 overflow-hidden" style={{ fontFamily: 'Arial, sans-serif', height: '100vh', backgroundColor: 'var(--bg-secondary)' }}>
       <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
       <div className="flex-grow-1 h-100 overflow-hidden position-relative">
         <AnimatePresence mode="wait">

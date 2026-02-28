@@ -78,7 +78,7 @@ const VescanLoader = ({ className = "flex-grow-1" }) => {
         </motion.div>
       </div>
       
-      <div className="mt-2 text-muted fw-medium small text-uppercase" style={{ letterSpacing: '2px', fontSize: '0.75rem' }}>
+      <div className="mt-2 fw-medium small text-uppercase" style={{ letterSpacing: '2px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
         LOADING PROFILE
       </div>
     </div>

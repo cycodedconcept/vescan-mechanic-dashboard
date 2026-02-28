@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
+import TopHeader from '../components/TopHeader';
 import {
   Bell,
   Menu,
@@ -46,44 +47,10 @@ const Financial = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="flex-grow-1 d-flex flex-column h-100 overflow-hidden"
-      style={{ backgroundColor: '#F7FAFC' }}
+      style={{ backgroundColor: 'var(--bg-primary)' }}
     >
       {/* Standard White Top Bar */}
-      <header className="bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-shrink-0">
-        <div className="d-flex align-items-center gap-3">
-          {!isSidebarOpen && (
-            <button 
-              onClick={toggleSidebar}
-              className="btn btn-link p-0 text-dark me-2"
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          <div>
-            <h5 className="fw-bold mb-0">Financial Tools</h5>
-            <small className="text-muted">Manage your business operations</small>
-          </div>
-        </div>
-        <div className="d-flex align-items-center gap-3">
-          <motion.button 
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="btn btn-light position-relative rounded-circle p-2"
-          >
-            <Bell size={20} />
-            <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-              <span className="visually-hidden">New alerts</span>
-            </span>
-          </motion.button>
-          <motion.div 
-            whileHover={{ scale: 1.1 }}
-            className="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold cursor-pointer" 
-            style={{ width: '40px', height: '40px' }}
-          >
-            JD
-          </motion.div>
-        </div>
-      </header>
+      <TopHeader title="Financial Tools" />
 
       {/* Scrollable Area */}
       <motion.div 
@@ -180,7 +147,7 @@ const Financial = () => {
                   onClick={() => setActiveTab(tab)}
                   className="btn border-0 p-0 pb-2 rounded-0 small position-relative"
                   style={{ 
-                    color: activeTab === tab ? '#00C2FF' : '#718096',
+                    color: activeTab === tab ? '#00C2FF' : 'var(--text-secondary)',
                     fontWeight: activeTab === tab ? '600' : '400',
                     fontSize: '0.9rem'
                   }}
@@ -212,11 +179,12 @@ const Financial = () => {
                 <motion.div 
                   variants={itemVariants}
                   whileHover={{ boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}
-                  className="card border-0 shadow-sm rounded-4"
+                  className="border-0 shadow-sm rounded-4"
+                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                 >
                   <div className="card-body p-4">
                     <div className="d-flex justify-content-between align-items-center mb-4">
-                      <h6 className="fw-bold mb-0">Revenue Trends</h6>
+                      <h6 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>Revenue Trends</h6>
                       <small className="text-success d-flex align-items-center gap-1">
                          <ArrowUpRight size={16} />
                          Last 7 days
@@ -240,7 +208,7 @@ const Financial = () => {
                                      opacity: 0.8
                                  }}
                                ></motion.div>
-                               <small className="text-muted" style={{ fontSize: '10px' }}>{day}</small>
+                               <small style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{day}</small>
                             </div>
                           );
                        })}
@@ -257,38 +225,39 @@ const Financial = () => {
                       sub: `+18% from last month`, 
                       icon: ArrowDownRight, 
                       color: '#28a745', 
-                      bgColor: '#EFFFF4' 
+                      bgColor: 'rgba(40, 167, 69, 0.15)' 
                     },
                     { 
                       label: 'Pending', 
                       value: FINANCIAL_STATS.pending, 
                       sub: `${FINANCIAL_STATS.pendingCount} unpaid invoices`, 
                       icon: Clock, 
-                      color: '#007bff', 
-                      bgColor: '#DBEAFE' 
+                      color: '#3b82f6', 
+                      bgColor: 'rgba(59, 130, 246, 0.15)' 
                     }
                   ].map((stat, i) => (
                     <div key={stat.label} className="col-md-6">
                       <motion.div 
                         variants={itemVariants}
                         whileHover={{ y: -5 }}
-                        className="card border-0 shadow-sm rounded-4 h-100"
+                        className="border-0 shadow-sm rounded-4 h-100"
+                        style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                       >
                         <div className="card-body p-4">
                           <div className="d-flex align-items-center gap-3 mb-3">
                             <div 
                               className="rounded-3 d-flex align-items-center justify-content-center"
-                              style={{ width: '40px', height: '40px', backgroundColor: stat.bgColor, color: stat.color }}
+                              style={{ width: '40px', height: '40px', backgroundColor: stat.bgColor, color: stat.color, opacity: 0.9 }}
                             >
                               <stat.icon size={20} />
                             </div>
-                            <span className="text-muted small fw-medium">{stat.label}</span>
+                            <span className="small fw-medium" style={{ color: 'var(--text-secondary)' }}>{stat.label}</span>
                           </div>
                           <div>
-                            <h3 className="fw-bold mb-2" style={{ color: '#1a202c' }}>{stat.value}</h3>
+                            <h3 className="fw-bold mb-2" style={{ color: 'var(--text-primary)' }}>{stat.value}</h3>
                             <small 
                               className="fw-medium" 
-                              style={{ color: stat.label === 'Total Revenue' ? '#28a745' : '#718096' }}
+                              style={{ color: stat.label === 'Total Revenue' ? '#28a745' : 'var(--text-secondary)' }}
                             >
                               {stat.sub}
                             </small>
@@ -300,9 +269,9 @@ const Financial = () => {
                 </div>
 
                 {/* Recent Transactions */}
-                <motion.div variants={itemVariants} className="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <motion.div variants={itemVariants} className="border-0 shadow-sm rounded-4 overflow-hidden" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
                    <div className="card-body p-4">
-                      <h6 className="fw-bold mb-4">Recent Transactions</h6>
+                      <h6 className="fw-bold mb-4" style={{ color: 'var(--text-primary)' }}>Recent Transactions</h6>
                       <div className="d-flex flex-column gap-4">
                          {TRANSACTIONS.map((tx, idx) => (
                             <motion.div 
@@ -326,13 +295,13 @@ const Financial = () => {
                                       <Clock size={18} />}
                                   </motion.div>
                                   <div>
-                                     <div className="fw-medium text-dark">{tx.title}</div>
-                                     <small className="text-muted">{tx.time}</small>
+                                     <div className="fw-medium" style={{ color: 'var(--text-primary)' }}>{tx.title}</div>
+                                     <small style={{ color: 'var(--text-secondary)' }}>{tx.time}</small>
                                   </div>
                                </div>
                                <div className={`fw-bold ${
                                   tx.type === 'income' ? 'text-success' : 
-                                  tx.type === 'expense' ? 'text-dark' : 
+                                  tx.type === 'expense' ? 'var(--text-primary)' : 
                                   'text-success' 
                                }`}>
                                   {tx.amount}
@@ -353,19 +322,20 @@ const Financial = () => {
                     variants={itemVariants}
                     whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(0,0,0,0.1)' }}
                     transition={{ type: 'spring', stiffness: 300 }}
-                    className="card border-0 shadow-sm rounded-4 overflow-hidden cursor-pointer"
+                    className="border-0 shadow-sm rounded-4 overflow-hidden cursor-pointer"
+                    style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                   >
                     <div className="card-body p-4">
                       {/* Card Header: Invoice #, Status, Amount */}
                       <div className="d-flex justify-content-between align-items-start mb-2">
                         <div className="d-flex align-items-center gap-2">
-                          <h6 className="fw-bold mb-0 text-dark">{invoice.id}</h6>
+                          <h6 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>{invoice.id}</h6>
                           <span 
                             className="badge rounded-1 px-2 py-1 small fw-medium" 
                             style={{ 
                               fontSize: '0.65rem',
-                              backgroundColor: invoice.status === 'Paid' ? '#EFFFF4' : '#FFEDD4',
-                              color: invoice.status === 'Paid' ? '#28a745' : '#CA3500'
+                              backgroundColor: invoice.status === 'Paid' ? 'rgba(40, 167, 69, 0.15)' : 'rgba(202, 53, 0, 0.15)',
+                              color: invoice.status === 'Paid' ? '#28a745' : '#ff7b5e'
                             }}
                           >
                             <motion.span
@@ -382,17 +352,17 @@ const Financial = () => {
                             </motion.span>
                           </span>
                         </div>
-                        <h6 className="fw-bold mb-0 text-dark">{invoice.amount}</h6>
+                        <h6 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>{invoice.amount}</h6>
                       </div>
 
                       {/* Customer Info */}
                       <div className="mb-4">
                         <div className="text-secondary small">{invoice.customer}</div>
-                        <div className="text-muted small" style={{ fontSize: '0.75rem' }}>{invoice.car}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{invoice.car}</div>
                       </div>
 
                       {/* Line Items Table-like UI */}
-                      <div className="bg-light bg-opacity-50 p-3 rounded-3 mb-3 border border-secondary border-opacity-10">
+                      <div className="p-3 rounded-3 mb-3 border" style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-color)' }}>
                         {invoice.items.map((item, idx) => (
                           <motion.div 
                             key={idx} 
@@ -402,13 +372,13 @@ const Financial = () => {
                             className={`d-flex justify-content-between align-items-center ${idx < invoice.items.length - 1 ? 'border-bottom border-light pb-2 mb-2' : ''}`}
                           >
                             <span className="small text-secondary">{item.name}</span>
-                            <span className="small fw-bold text-dark">{item.price}</span>
+                            <span className="small fw-bold" style={{ color: 'var(--text-primary)' }}>{item.price}</span>
                           </motion.div>
                         ))}
                       </div>
 
                       {/* Footer: Dates */}
-                      <div className="d-flex justify-content-between align-items-center mb-4 small text-muted">
+                      <div className="d-flex justify-content-between align-items-center mb-4 small" style={{ color: 'var(--text-secondary)' }}>
                         <div className="d-flex align-items-center gap-1">
                           <Clock size={12} className="opacity-50" />
                           <span>Issue: {invoice.issueDate}</span>
@@ -429,7 +399,8 @@ const Financial = () => {
                         <motion.button 
                           whileHover={{ scale: 1.05, backgroundColor: '#f0f4f8' }}
                           whileTap={{ scale: 0.95 }}
-                          className="btn btn-outline-light px-3 py-2 rounded-3 border border-light shadow-sm bg-white text-secondary d-flex align-items-center justify-content-center"
+                          className="btn px-3 py-2 rounded-3 border shadow-sm d-flex align-items-center justify-content-center"
+                          style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)', color: 'var(--text-secondary)' }}
                         >
                           <Share2 size={18} />
                         </motion.button>
@@ -443,15 +414,16 @@ const Financial = () => {
             {activeTab === 'Transactions' && (
               <div className="d-flex flex-column gap-1">
                 <div className="mb-3">
-                  <h5 className="fw-bold mb-0 text-dark">All Transactions</h5>
-                  <small className="text-muted">Complete transaction history</small>
+                  <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>All Transactions</h5>
+                  <small style={{ color: 'var(--text-secondary)' }}>Complete transaction history</small>
                 </div>
 
                 <motion.div 
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="card border-0 shadow-sm rounded-4 overflow-hidden"
+                  className="border-0 shadow-sm rounded-4 overflow-hidden"
+                  style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                 >
                   <div className="card-body p-0">
                     <div className="list-group list-group-flush">
@@ -459,8 +431,9 @@ const Financial = () => {
                         <motion.div 
                           key={tx.id}
                           variants={itemVariants}
-                          whileHover={{ backgroundColor: '#fcfcfc' }}
+                          whileHover={{ backgroundColor: 'var(--hover-bg)' }}
                           className={`list-group-item border-0 px-4 py-3 d-flex align-items-center justify-content-between ${idx < TRANSACTIONS.length - 1 ? 'border-bottom' : ''}`}
+                          style={{ backgroundColor: 'transparent', borderBottomColor: 'var(--border-color)' }}
                         >
                           <div className="d-flex align-items-center gap-3">
                             {/* Icon Container */}
@@ -469,8 +442,8 @@ const Financial = () => {
                               style={{ 
                                 width: '40px', 
                                 height: '40px', 
-                                backgroundColor: tx.type === 'income' ? '#EFFFF4' : tx.type === 'expense' ? '#FFF5F5' : '#FFF7ED',
-                                color: tx.type === 'income' ? '#28a745' : tx.type === 'expense' ? '#EF4444' : '#F97316'
+                                backgroundColor: tx.type === 'income' ? 'rgba(40, 167, 69, 0.15)' : tx.type === 'expense' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(249, 115, 22, 0.15)',
+                                color: tx.type === 'income' ? '#22C55E' : tx.type === 'expense' ? '#EF4444' : '#F97316'
                               }}
                             >
                               {tx.type === 'income' ? <ArrowDownRight size={20} /> : tx.type === 'expense' ? <ArrowUpRight size={20} /> : <Clock size={20} />}
@@ -478,10 +451,10 @@ const Financial = () => {
 
                             {/* Details */}
                             <div>
-                              <div className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>{tx.title}</div>
+                              <div className="fw-bold" style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{tx.title}</div>
                               <div className="d-flex flex-column" style={{ fontSize: '0.8rem' }}>
-                                <span className="text-muted">{tx.time}</span>
-                                <span className="text-muted opacity-50">{tx.refId}</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>{tx.time}</span>
+                                <span style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>{tx.refId}</span>
                               </div>
                             </div>
                           </div>
@@ -491,7 +464,7 @@ const Financial = () => {
                             <div 
                               className="fw-bold" 
                               style={{ 
-                                color: tx.type === 'income' ? '#28a745' : '#1a202c',
+                                color: tx.type === 'income' ? '#22C55E' : 'var(--text-primary)',
                                 fontSize: '1rem' 
                               }}
                             >
@@ -500,7 +473,7 @@ const Financial = () => {
                             <div 
                               className="small fw-medium" 
                               style={{ 
-                                color: tx.status === 'completed' ? '#22C55E' : '#CA3500',
+                                color: tx.status === 'completed' ? '#22C55E' : '#ff7b5e',
                                 fontSize: '0.75rem'
                               }}
                             >
@@ -522,7 +495,7 @@ const Financial = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-4 rounded-4 d-flex align-items-center justify-content-between"
-                  style={{ backgroundColor: '#EFFFF4', border: '1px solid rgba(40, 167, 69, 0.1)' }}
+                  style={{ backgroundColor: 'rgba(40, 167, 69, 0.1)', border: '1px solid rgba(40, 167, 69, 0.15)' }}
                 >
                   <div className="d-flex align-items-center gap-4">
                     <div 
@@ -533,7 +506,7 @@ const Financial = () => {
                     </div>
                     <div>
                       <div className="text-success fw-medium mb-1">Total Commission Earned</div>
-                      <h2 className="fw-bold mb-0 text-dark">₦5,680</h2>
+                      <h2 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>₦5,680</h2>
                     </div>
                   </div>
                   <div className="text-success small opacity-75 d-none d-md-block">
@@ -542,8 +515,8 @@ const Financial = () => {
                 </motion.div>
 
                 <div>
-                  <h5 className="fw-bold mb-0 text-dark">Commission History</h5>
-                  <small className="text-muted">Auto-parts sales from your customers</small>
+                  <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>Commission History</h5>
+                  <small style={{ color: 'var(--text-secondary)' }}>Auto-parts sales from your customers</small>
                 </div>
 
                 {/* Commissions List */}
@@ -558,36 +531,37 @@ const Financial = () => {
                       key={comm.id}
                       variants={itemVariants}
                       whileHover={{ y: -2, boxShadow: '0 8px 20px rgba(0,0,0,0.05)' }}
-                      className="card border-0 shadow-sm rounded-4 overflow-hidden"
+                      className="border-0 shadow-sm rounded-4 overflow-hidden"
+                      style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
                     >
                       <div className="card-body p-4">
                         <div className="d-flex justify-content-between align-items-start">
                           <div>
                             <div className="d-flex align-items-center gap-2 mb-1">
-                              <h6 className="fw-bold mb-0 text-dark">{comm.customer}</h6>
+                              <h6 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>{comm.customer}</h6>
                               <span 
                                 className="badge rounded-1 px-2 py-0.5" 
                                 style={{ 
                                   fontSize: '0.65rem',
-                                  backgroundColor: comm.status === 'credited' ? '#EFFFF4' : '#FFF7ED',
-                                  color: comm.status === 'credited' ? '#28a745' : '#F97316'
+                                  backgroundColor: comm.status === 'credited' ? 'rgba(40, 167, 69, 0.15)' : 'rgba(249, 115, 22, 0.15)',
+                                  color: comm.status === 'credited' ? '#22C55E' : '#F97316'
                                 }}
                               >
                                 {comm.status}
                               </span>
                             </div>
-                            <div className="text-secondary small mb-3">{comm.item}</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }} className="mb-3">{comm.item}</div>
                             
                             <div className="d-flex flex-column gap-1">
-                              <span className="text-muted" style={{ fontSize: '0.75rem' }}>Order Value:</span>
-                              <span className="fw-bold text-dark small">{comm.orderValue}</span>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Order Value:</span>
+                              <span className="fw-bold small" style={{ color: 'var(--text-primary)' }}>{comm.orderValue}</span>
                             </div>
                           </div>
 
                           <div className="text-end">
                             <div className="fw-bold text-success mb-1" style={{ fontSize: '1.1rem' }}>{comm.commission}</div>
-                            <div className="text-muted small mb-3">{comm.rate}</div>
-                            <div className="text-muted" style={{ fontSize: '0.75rem' }}>{comm.date}</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }} className="mb-3">{comm.rate}</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{comm.date}</div>
                           </div>
                         </div>
                       </div>

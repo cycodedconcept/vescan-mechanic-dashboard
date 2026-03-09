@@ -14,11 +14,28 @@ import {
   Menu
 } from 'lucide-react';
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import VescanLoader from './VescanLoader';
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = React.useState(false);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+  // Get user from localStorage
+  const userStr = localStorage.getItem('vescan_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userName = user?.name || 'User';
+  
+  // Calculate initials (e.g., "John Doe" -> "JD")
+  const initials = userName
+    .split(' ')
+    .filter(n => n)
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   React.useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 992);
@@ -37,6 +54,17 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     { icon: ShoppingCart, label: 'E-Commerce', path: '/ecommerce' },
     { icon: BarChart2, label: 'Analytics', path: '/analytics' }
   ];
+
+  if (isLoggingOut) {
+    return (
+      <div 
+        className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+        style={{ zIndex: 9999, backgroundColor: 'var(--bg-primary)' }}
+      >
+        <VescanLoader />
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -61,7 +89,9 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="d-flex flex-column text-white" 
             style={{ 
-              backgroundColor: '#001F3F', 
+              backgroundColor: 'var(--sidebar-bg)', 
+              borderColor: 'var(--border-color)',
+              color: '#fff',
               flexShrink: 0,
               overflow: 'hidden', 
               whiteSpace: 'nowrap',
@@ -127,11 +157,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                   style={{ backgroundColor: 'rgba(23, 42, 69, 0.5)' }} // Slightly lighter/tinted bg for the card
                 >
                   <div className="d-flex align-items-center gap-3 mb-4">
-                    <div className="bg-white text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', fontSize: '0.9rem' }}>
-                      JD
+                    <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', fontSize: '0.9rem', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+                      {initials}
                     </div>
                     <div className="d-flex flex-column">
-                      <span className="fw-medium text-white" style={{ fontSize: '0.95rem' }}>John Doe</span>
+                      <span className="fw-medium text-white" style={{ fontSize: '0.95rem' }}>{userName}</span>
                       <small className="text-white opacity-75" style={{ fontSize: '0.75rem' }}>Master Mechanic</small>
                     </div>
                   </div>
@@ -148,7 +178,19 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                       <Settings size={18} />
                       <span style={{ fontSize: '0.9rem' }}>Settings</span>
                     </Link>
-                    <a href="#" className="nav-link d-flex align-items-center gap-3 text-white opacity-75 hover-opacity-100 py-1">
+                    <a 
+                      href="#!" 
+                      className="nav-link d-flex align-items-center gap-3 text-white opacity-75 hover-opacity-100 py-1 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsLoggingOut(true);
+                        setTimeout(() => {
+                           localStorage.removeItem('vescan_token');
+                           localStorage.removeItem('vescan_user');
+                           navigate('/signin');
+                        }, 2500); // matching the length of VescanLoader display
+                      }}
+                    >
                       <LogOut size={18} />
                       <span style={{ fontSize: '0.9rem' }}>Logout</span>
                     </a>

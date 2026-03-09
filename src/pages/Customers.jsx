@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
+import TopHeader from '../components/TopHeader';
 import {
   Bell,
   Menu,
@@ -106,7 +107,7 @@ const Customers = () => {
                 type="text" 
                 placeholder="Search customers..."
                 className="form-control border-0 shadow-sm ps-5 py-3 rounded-3"
-                style={{ backgroundColor: 'white', border: '1px solid #E2E8F0' }}
+                style={{ backgroundColor: 'var(--input-bg)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -127,6 +128,7 @@ const Customers = () => {
                 whileHover={{ y: -3, boxShadow: '0 12px 25px rgba(0,0,0,0.06)' }}
                 transition={{ type: 'spring', stiffness: 300 }}
                 className="card border-0 shadow-sm rounded-4 overflow-hidden cursor-pointer"
+                style={{ backgroundColor: 'var(--card-bg)' }}
                 onClick={() => handleCustomerClick(customer)}
               >
                 <div className="card-body p-4">
@@ -149,7 +151,7 @@ const Customers = () => {
                     <div className="flex-grow-1">
                       <div className="d-flex justify-content-between align-items-start mb-1">
                         <div>
-                          <h5 className="fw-bold mb-1 text-dark" style={{ fontSize: '1.05rem' }}>{customer.name}</h5>
+                          <h5 className="fw-bold mb-1" style={{ fontSize: '1.05rem', color: 'var(--text-primary)' }}>{customer.name}</h5>
                           <div className="d-flex gap-1 text-warning mb-2">
                             {[...Array(5)].map((_, i) => (
                               <Star 
@@ -176,18 +178,18 @@ const Customers = () => {
                       </div>
 
                       {/* Stats Row */}
-                      <div className="row g-0 pt-3 border-top" style={{ borderColor: '#edf2f7' }}>
+                      <div className="row g-0 pt-3 border-top" style={{ borderColor: 'var(--border-color)' }}>
                         <div className="col-4">
-                          <div className="text-muted mb-1" style={{ fontSize: '0.7rem', color: '#718096' }}>Total Services</div>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>{customer.totalServices}</div>
+                          <div className="text-secondary mb-1" style={{ fontSize: '0.7rem' }}>Total Services</div>
+                          <div className="fw-bold" style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{customer.totalServices}</div>
                         </div>
                         <div className="col-4">
-                          <div className="text-muted mb-1" style={{ fontSize: '0.7rem', color: '#718096' }}>Total Spent</div>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>{customer.totalSpent}</div>
+                          <div className="text-secondary mb-1" style={{ fontSize: '0.7rem' }}>Total Spent</div>
+                          <div className="fw-bold" style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{customer.totalSpent}</div>
                         </div>
                         <div className="col-4">
-                          <div className="text-muted mb-1" style={{ fontSize: '0.7rem', color: '#718096' }}>Last Service</div>
-                          <div className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>{customer.lastService}</div>
+                          <div className="text-secondary mb-1" style={{ fontSize: '0.7rem' }}>Last Service</div>
+                          <div className="fw-bold" style={{ fontSize: '0.95rem', color: 'var(--text-primary)' }}>{customer.lastService}</div>
                         </div>
                       </div>
                     </div>
@@ -303,7 +305,7 @@ const Customers = () => {
                   </div>
                   <div>
                     <div className="text-muted mb-1" style={{ fontSize: '0.85rem' }}>Phone</div>
-                    <div className="fw-bold text-dark" style={{ fontSize: '1.1rem' }}>{selectedCustomer.phone}</div>
+                    <div className="fw-bold" style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{selectedCustomer.phone}</div>
                   </div>
                 </div>
                 <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="btn btn-link text-decoration-none small p-0 fw-medium" style={{ color: brandBlue, fontSize: '0.9rem' }}>Call</motion.button>
@@ -315,7 +317,7 @@ const Customers = () => {
                 </div>
                 <div>
                   <div className="text-muted mb-1" style={{ fontSize: '0.85rem' }}>Email</div>
-                  <div className="fw-bold text-dark" style={{ fontSize: '1.1rem' }}>{selectedCustomer.email}</div>
+                  <div className="fw-bold" style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{selectedCustomer.email}</div>
                 </div>
               </div>
 
@@ -325,7 +327,7 @@ const Customers = () => {
                 </div>
                 <div>
                   <div className="text-muted mb-1" style={{ fontSize: '0.85rem' }}>Location</div>
-                  <div className="fw-bold text-dark" style={{ fontSize: '1.1rem' }}>{selectedCustomer.location}</div>
+                  <div className="fw-bold" style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{selectedCustomer.location}</div>
                 </div>
               </div>
             </div>
@@ -355,15 +357,15 @@ const Customers = () => {
                 <div className="row g-0 pt-3 border-top" style={{ borderColor: '#F1F5F9' }}>
                   <div className="col-4 border-end text-center">
                     <div className="text-muted small mb-1" style={{ fontSize: '0.7rem' }}>Mileage</div>
-                    <div className="fw-bold text-dark small">{v.mileage}</div>
+                    <div className="fw-bold small" style={{ color: 'var(--text-primary)' }}>{v.mileage}</div>
                   </div>
                   <div className="col-4 border-end text-center">
-                    <div className="text-muted small mb-1" style={{ fontSize: '0.7rem' }}>Last Service</div>
-                    <div className="fw-bold text-dark small">{v.lastServiceDate}</div>
+                    <div className="text-secondary tiny mb-1" style={{ fontSize: '0.7rem' }}>Last Srv.</div>
+                    <div className="fw-bold small" style={{ color: 'var(--text-primary)' }}>{v.lastServiceDate}</div>
                   </div>
                   <div className="col-4 text-center">
-                    <div className="text-muted small mb-1" style={{ fontSize: '0.7rem' }}>Next Service</div>
-                    <div className="fw-bold text-dark small">{v.nextServiceDate}</div>
+                    <div className="text-secondary tiny mb-1" style={{ fontSize: '0.7rem' }}>Next Srv.</div>
+                    <div className="fw-bold small" style={{ color: 'var(--text-primary)' }}>{v.nextServiceDate}</div>
                   </div>
                 </div>
               </div>
@@ -390,7 +392,7 @@ const Customers = () => {
                         <div className="text-muted" style={{ fontSize: '0.75rem' }}>{service.date}</div>
                       </div>
                       <div className="text-end">
-                        <div className="fw-bold text-dark mb-2">{service.amount}</div>
+                        <div className="fw-bold mb-2" style={{ color: 'var(--text-primary)' }}>{service.amount}</div>
                         <span className="badge rounded-pill px-3 py-1 text-success fw-medium" style={{ backgroundColor: '#EFFFF4', fontSize: '0.7rem' }}>
                           {service.status}
                         </span>
@@ -421,41 +423,10 @@ const Customers = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="flex-grow-1 d-flex flex-column h-100 overflow-hidden"
-      style={{ backgroundColor: '#F7FAFC' }}
+      style={{ backgroundColor: 'var(--bg-primary)' }}
     >
       {/* Top Header */}
-      <header className="bg-white px-4 py-3 d-flex justify-content-between align-items-center shadow-sm border-bottom flex-shrink-0">
-        <div className="d-flex align-items-center gap-3">
-          {!isSidebarOpen && (
-            <button 
-              onClick={toggleSidebar}
-              className="btn btn-link p-0 text-dark"
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          <div>
-            <h5 className="fw-bold mb-0 text-dark">Customer Management</h5>
-            <small className="text-muted">Manage your business operations</small>
-          </div>
-        </div>
-        
-        <div className="d-flex align-items-center gap-3">
-          <div className="position-relative">
-            <Bell size={20} className="text-secondary cursor-pointer" />
-            <span 
-              className="position-absolute translate-middle p-1 bg-danger border border-light rounded-circle"
-              style={{ top: '2px', right: '-8px' }}
-            ></span>
-          </div>
-          <div 
-            className="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm"
-            style={{ width: '38px', height: '38px', backgroundColor: '#1A202C', fontSize: '0.85rem' }}
-          >
-            JD
-          </div>
-        </div>
-      </header>
+      <TopHeader title="Customer Management" />
 
       {isLoading ? <VescanLoader /> : (selectedCustomer ? renderDetailsView() : renderListView())}
     </motion.div>

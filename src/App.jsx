@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AnimatePresence } from 'framer-motion';
 import SignUp from './SignUp';
 import SignIn from './SignIn';
+import ForgotPassword from './ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Services from './pages/Services';
 import Financial from './pages/Financial';
@@ -16,6 +17,7 @@ import AuthLayout from './components/AuthLayout';
 import './App.css';
 
 import MainLayout from './components/MainLayout';
+import { ThemeProvider } from './context/ThemeContext';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -38,6 +40,14 @@ const AnimatedRoutes = () => {
             element={
               <PageTransition>
                 <SignIn />
+              </PageTransition>
+            } 
+          />
+          <Route 
+            path="/forgot-password" 
+            element={
+              <PageTransition>
+                <ForgotPassword />
               </PageTransition>
             } 
           />
@@ -91,9 +101,11 @@ const AnimatedRoutes = () => {
 
 function App() {
   return (
-    <Router>
-      <AnimatedRoutes />
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <AnimatedRoutes />
+      </Router>
+    </ThemeProvider>
   );
 }
 

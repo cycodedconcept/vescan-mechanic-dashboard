@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { useOutletContext } from 'react-router-dom';
+import TopHeader from '../components/TopHeader';
 import {
   Bell,
   Search,
@@ -35,39 +36,14 @@ const Services = () => {
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
         className="flex-grow-1 d-flex flex-column h-100 overflow-hidden"
+        style={{ backgroundColor: 'var(--bg-primary)' }}
       >
         {/* Header */}
-        <header className="bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center flex-shrink-0">
-          <div className="d-flex align-items-center gap-3">
-            {!isSidebarOpen && (
-              <button 
-                onClick={toggleSidebar} 
-                className="btn btn-link p-0 text-dark me-2"
-              >
-                <Menu size={24} />
-              </button>
-            )}
-            <div>
-              <h5 className="fw-bold mb-0">Service Management</h5>
-              <small className="text-muted">Manage your business operations</small>
-            </div>
-          </div>
-          <div className="d-flex align-items-center gap-3">
-            <button className="btn btn-light position-relative rounded-circle p-2">
-              <Bell size={20} />
-              <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                <span className="visually-hidden">New alerts</span>
-              </span>
-            </button>
-            <div className="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px' }}>
-              JD
-            </div>
-          </div>
-        </header>
+        <TopHeader title="Service Management" />
 
-        <div className="p-4 flex-grow-1 overflow-auto" style={{ backgroundColor: '#F8F9FA' }}>
+        <div className="p-4 flex-grow-1 overflow-auto" style={{ backgroundColor: 'var(--bg-secondary)' }}>
           {/* Blue Banner with Stats */}
-          <div className="card border-0 mb-4 overflow-hidden text-white" style={{ backgroundColor: '#001F3F', borderRadius: '12px' }}>
+          <div className="card border-0 mb-4 overflow-hidden text-white" style={{ backgroundColor: 'var(--sidebar-bg)', borderRadius: '12px' }}>
             <div className="card-body p-4">
               <h5 className="mb-4">Service Management</h5>
               <div className="row g-4">
@@ -106,10 +82,10 @@ const Services = () => {
                   onClick={() => setActiveTab(tabKey)}
                   className={`btn rounded-0 border-0 px-4 py-3 fw-medium position-relative ${
                     activeTab === tabKey
-                      ? 'text-dark'
-                      : 'text-muted'
+                      ? 'text-primary'
+                      : 'text-secondary'
                   }`}
-                  style={activeTab === tabKey ? { color: '#001F3F', fontWeight: 'bold' } : {}}
+                  style={activeTab === tabKey ? { color: 'var(--text-primary)', fontWeight: 'bold' } : { color: 'var(--text-secondary)' }}
                 >
                   <span className="position-relative">
                     {tab}
@@ -129,7 +105,7 @@ const Services = () => {
                     <motion.div
                       layoutId="activeTab"
                       className="position-absolute bottom-0 start-0 w-100"
-                      style={{ height: '3px', backgroundColor: '#001F3F' }}
+                      style={{ height: '3px', backgroundColor: 'var(--text-primary)' }}
                     />
                   )}
                 </button>
@@ -149,10 +125,10 @@ const Services = () => {
                    className="d-flex justify-content-between align-items-center mb-2 px-1"
                 >
                    <div>
-                      <h5 className="fw-bold mb-0">Recent Completions</h5>
-                      <small className="text-muted">Last 7 days</small>
+                      <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>Recent Completions</h5>
+                      <small style={{ color: 'var(--text-secondary)' }}>Last 7 days</small>
                    </div>
-                   <button className="btn btn-white border d-flex align-items-center gap-2 bg-white text-secondary">
+                   <button className="btn d-flex align-items-center gap-2 border" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}>
                       <Filter size={16} />
                       Filter
                    </button>
@@ -169,6 +145,7 @@ const Services = () => {
                   whileHover={{ scale: 1.01, boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}
                   transition={{ duration: 0.2 }}
                   className="card border-0 shadow-sm rounded-3 overflow-hidden"
+                  style={{ backgroundColor: 'var(--card-bg)' }}
                 >
                   <div className={`card-body p-4 ${job.category === 'alerts' ? 'position-relative' : ''}`}>
                     {job.category === 'alerts' && (
@@ -193,11 +170,11 @@ const Services = () => {
                                 <AlertTriangle size={20} className={job.status === 'Critical' ? 'pulse-animation' : ''} />
                              </div>
                              <div>
-                               <h5 className="fw-bold mb-1">{job.customer}</h5>
-                               <div className="text-muted small">{job.car}</div>
+                               <h5 className="fw-bold mb-1" style={{ color: 'var(--text-primary)' }}>{job.customer}</h5>
+                               <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{job.car}</div>
                              </div>
                           </div>
-                          <div className="text-muted small">{job.timeAgo}</div>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{job.timeAgo}</div>
                         </div>
 
                         <div className="ps-2 mb-4">
@@ -205,15 +182,15 @@ const Services = () => {
                              <span className="badge bg-dark text-white rounded-1 px-2 py-1" style={{ fontSize: '0.75rem' }}>{job.errorCode}</span>
                              <span className={`badge ${job.severity === 'High Severity' ? 'bg-danger bg-opacity-10 text-danger pulse-animation' : 'bg-warning bg-opacity-10 text-warning'} rounded-1 px-2 py-1`} style={{ fontSize: '0.75rem' }}>{job.severity}</span>
                            </div>
-                           <div className="fw-medium mb-3">{job.service}</div>
+                           <div className="fw-medium mb-3" style={{ color: 'var(--text-primary)' }}>{job.service}</div>
 
                            {/* Customer Notes */}
-                           <div className="p-3 bg-light rounded-2 mb-3">
-                              <small className="text-muted d-block mb-1">Customer Notes:</small>
-                              <div className="small text-secondary">{job.customerNotes}</div>
+                           <div className="p-3 rounded-2 mb-3" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                              <small className="d-block mb-1" style={{ color: 'var(--text-secondary)' }}>Customer Notes:</small>
+                              <div className="small" style={{ color: 'var(--text-secondary)' }}>{job.customerNotes}</div>
                            </div>
                            
-                           <div className="d-flex flex-wrap gap-4 text-muted small mb-3">
+                           <div className="d-flex flex-wrap gap-4 small mb-3" style={{ color: 'var(--text-secondary)' }}>
                               {job.location && (
                                 <div className="d-flex align-items-center gap-1">
                                   <MapPin size={14} className="text-danger" />
@@ -236,13 +213,13 @@ const Services = () => {
 
                         {/* Actions */}
                         <div className="d-flex gap-2 ps-2">
-                          <button className="btn btn-dark flex-grow-1 py-2 text-white border-0" style={{ backgroundColor: '#001F3F' }}>
+                          <button className="btn btn-dark flex-grow-1 py-2 text-white border-0" style={{ backgroundColor: 'var(--sidebar-bg)' }}>
                             Call Customer
                           </button>
                           <button className="btn btn-info flex-grow-1 py-2 text-white border-0" style={{ backgroundColor: '#00BFFF' }}>
                             Schedule Service
                           </button>
-                          <button className="btn btn-white border px-3 py-2 text-secondary bg-white">
+                          <button className="btn border px-3 py-2" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}>
                             View Media
                           </button>
                         </div>
@@ -252,26 +229,26 @@ const Services = () => {
                       <>
                         <div className="d-flex justify-content-between align-items-start mb-2">
                           <div className="d-flex align-items-center gap-2">
-                            <h5 className="fw-bold mb-0">{job.customer}</h5>
+                            <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>{job.customer}</h5>
                             {job.isVerified && <CheckCircle size={16} className="text-success" fill="none" />}
                             {!job.isVerified && job.paymentStatus === 'Payment Pending' && (
                               <span className="badge bg-warning bg-opacity-10 text-warning fw-normal px-2 py-1 pulse-animation" style={{ fontSize: '0.75rem' }}>Payment Pending</span>
                             )}
                           </div>
                           <div className="text-end">
-                             <h5 className="fw-bold mb-0">{job.price}</h5>
-                             <small className="text-muted">{job.laborTime}</small>
+                             <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>{job.price}</h5>
+                             <small style={{ color: 'var(--text-secondary)' }}>{job.laborTime}</small>
                           </div>
                         </div>
                         
-                        <div className="text-muted small mb-3">{job.car}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.75rem' }}>{job.car}</div>
                         <div className="fw-medium mb-3">{job.service}</div>
                         
-                        <div className="d-flex justify-content-between align-items-end border-top pt-3">
-                          <div className="text-muted small">{job.started}</div>
+                        <div className="d-flex justify-content-between align-items-end border-top pt-3" style={{ borderColor: 'var(--border-color)' }}>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{job.started}</div>
                           <div className="d-flex gap-1">
                              {[...Array(5)].map((_, i) => (
-                               <span key={i} className={i < job.rating ? "text-warning" : "text-muted"}>★</span>
+                               <span key={i} className={i < job.rating ? "text-warning" : "text-muted"} style={{ color: i < job.rating ? '#ffc107' : 'var(--text-muted)' }}>★</span>
                              ))}
                           </div>
                         </div>
@@ -283,7 +260,7 @@ const Services = () => {
                         <>
                           <div className="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                              <h5 className="fw-bold mb-1 d-flex align-items-center gap-2">
+                              <h5 className="fw-bold mb-1 d-flex align-items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                                 {job.customer}
                                 <span 
                                   className={`badge ${
@@ -296,28 +273,28 @@ const Services = () => {
                                   {job.status === 'Confirmed' ? 'confirmed' : 'pending'}
                                 </span>
                               </h5>
-                              <div className="text-muted small mb-1">{job.car}</div>
-                              <div className="fw-medium">{job.service}</div>
+                              <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>{job.car}</div>
+                              <div className="fw-medium" style={{ color: 'var(--text-primary)' }}>{job.service}</div>
                             </div>
                           </div>
 
                           {/* Time Block */}
-                          <div className="d-flex gap-4 p-3 rounded-3 mb-3" style={{ backgroundColor: '#F0F7FF' }}>
+                          <div className="d-flex gap-4 p-3 rounded-3 mb-3" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                             <div className="d-flex align-items-center gap-2">
-                              <div className="text-primary"><Clock size={16} /></div>
-                              <span className="small fw-medium text-dark">{job.started}</span>
+                              <div className="text-primary" style={{ color: 'var(--text-primary)' }}><Clock size={16} /></div>
+                              <span className="small fw-medium" style={{ color: 'var(--text-primary)' }}>{job.started}</span>
                             </div>
                             <div className="d-flex align-items-center gap-2">
-                              <div className="text-primary"><Clock size={16} /></div>
-                              <span className="small fw-medium text-dark">{job.laborTime}</span>
+                              <div className="text-primary" style={{ color: 'var(--text-primary)' }}><Clock size={16} /></div>
+                              <span className="small fw-medium" style={{ color: 'var(--text-primary)' }}>{job.laborTime}</span>
                             </div>
                           </div>
 
                           {/* Notes */}
                           {job.notes && (
                             <div className="mb-4">
-                              <small className="text-muted d-block mb-1">Notes:</small>
-                              <div className="p-3 bg-light rounded-2 small text-secondary">
+                              <small className="d-block mb-1" style={{ color: 'var(--text-secondary)' }}>Notes:</small>
+                              <div className="p-3 rounded-2 small" style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-secondary)' }}>
                                 {job.notes}
                               </div>
                             </div>
@@ -325,10 +302,10 @@ const Services = () => {
 
                           {/* Actions */}
                           <div className="d-flex gap-2">
-                            <button className="btn btn-dark flex-grow-1 py-2 text-white border-0" style={{ backgroundColor: '#001F3F' }}>
+                            <button className="btn btn-dark flex-grow-1 py-2 text-white border-0" style={{ backgroundColor: 'var(--sidebar-bg)' }}>
                               Start Service
                             </button>
-                            <button className="btn btn-white border px-4 py-2 text-secondary bg-white">
+                            <button className="btn border px-4 py-2" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}>
                               Reschedule
                             </button>
                           </div>
@@ -338,45 +315,45 @@ const Services = () => {
                         <>
                           <div className="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                              <h5 className="fw-bold mb-1 d-flex align-items-center gap-2">
+                              <h5 className="fw-bold mb-1 d-flex align-items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                                 {job.customer}
                                 {job.status === 'Paused' && (
-                                  <span className="badge bg-warning text-dark fw-normal" style={{ fontSize: '0.75rem' }}>Paused</span>
+                                  <span className="badge bg-warning fw-normal" style={{ fontSize: '0.75rem', color: 'var(--text-primary)' }}>Paused</span>
                                 )}
                                 {job.category === 'alerts' && (
                                    <span className="badge bg-danger bg-opacity-10 text-danger fw-normal pulse-animation" style={{ fontSize: '0.75rem' }}>Critical</span>
                                 )}
                               </h5>
-                              <div className="text-muted small mb-1">{job.car}</div>
-                              <div className="fw-medium">{job.service}</div>
+                              <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>{job.car}</div>
+                              <div className="fw-medium" style={{ color: 'var(--text-primary)' }}>{job.service}</div>
                             </div>
                             <div className="text-end">
-                              <h5 className="fw-bold mb-0">{job.price}</h5>
-                              <small className="text-muted">{job.laborTime}</small>
+                              <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>{job.price}</h5>
+                              <small style={{ color: 'var(--text-secondary)' }}>{job.laborTime}</small>
                             </div>
                           </div>
 
                           {/* Progress Bar */}
                           <div className="d-flex align-items-center gap-3 mb-3">
-                            <small className="text-muted">Progress</small>
-                            <div className="progress flex-grow-1" style={{ height: '6px' }}>
+                            <small style={{ color: 'var(--text-secondary)' }}>Progress</small>
+                            <div className="progress flex-grow-1" style={{ height: '6px', backgroundColor: 'var(--bg-tertiary)' }}>
                               <motion.div 
                                 className="progress-bar" 
                                 role="progressbar" 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${job.progress}%` }}
                                 transition={{ duration: 1, ease: "easeOut" }}
-                                style={{ backgroundColor: '#001F3F' }} 
+                                style={{ backgroundColor: 'var(--accent-primary)' }} 
                                 aria-valuenow={job.progress} 
                                 aria-valuemin="0" 
                                 aria-valuemax="100"
                               />
                             </div>
-                            <small className="fw-medium">{job.progress}%</small>
+                            <small className="fw-medium" style={{ color: 'var(--text-primary)' }}>{job.progress}%</small>
                           </div>
 
                           {/* Timestamps */}
-                          <div className="d-flex gap-4 mb-3 text-muted small">
+                          <div className="d-flex gap-4 mb-3" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                             <div className="d-flex align-items-center gap-1">
                               <Clock size={14} />
                               <span>Started: {job.started}</span>
@@ -389,12 +366,12 @@ const Services = () => {
 
                           {/* Parts Tags */}
                           <div className="d-flex flex-wrap gap-2 mb-4">
-                            <small className="text-muted me-1 pt-1">Parts Used:</small>
+                            <small className="me-1 pt-1" style={{ color: 'var(--text-secondary)' }}>Parts Used:</small>
                             {job.parts.length > 0 ? job.parts.map((part, i) => (
-                              <span key={i} className="badge bg-light text-dark border fw-normal py-2 px-3">
+                              <span key={i} className="badge fw-normal py-2 px-3 border" style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-color)' }}>
                                 {part}
                               </span>
-                            )) : <span className="text-muted small pt-1 fst-italic">No parts recorded</span>}
+                            )) : <span className="small pt-1 fst-italic" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>No parts recorded</span>}
                           </div>
 
                           {/* Actions */}
@@ -403,13 +380,13 @@ const Services = () => {
                               whileHover={{ scale: 1.02 }}
                               whileTap={{ scale: 0.98 }}
                               className="btn btn-dark flex-grow-1 d-flex align-items-center justify-content-center gap-2" 
-                              style={{ backgroundColor: '#001F3F' }}
+                              style={{ backgroundColor: 'var(--sidebar-bg)' }}
                             >
                               {job.status === 'Paused' ? <PlayCircle size={18} /> : <PauseCircle size={18} />}
                               {job.status === 'Paused' ? 'Resume' : 'Pause'}
                             </motion.button>
                             <motion.button 
-                              initial={{ backgroundColor: '#ffffff', color: '#6c757d', borderColor: '#dee2e6' }}
+                              initial={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}
                               whileHover={{ 
                                 scale: 1.03, 
                                 backgroundColor: '#00BFFF', 
@@ -428,12 +405,12 @@ const Services = () => {
                               Update
                             </motion.button>
                             <motion.button 
-                               initial={{ backgroundColor: '#ffffff', color: '#6c757d', borderColor: '#dee2e6' }}
+                               initial={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}
                                whileHover={{ 
                                  scale: 1.03, 
-                                 backgroundColor: '#001F3F', 
+                                 backgroundColor: 'var(--sidebar-bg)', 
                                  color: '#ffffff', 
-                                 borderColor: '#001F3F',
+                                 borderColor: 'var(--sidebar-bg)',
                                  boxShadow: '0 4px 15px rgba(0, 31, 63, 0.25)' 
                                }}
                                whileTap={{ scale: 0.95 }}
@@ -457,7 +434,7 @@ const Services = () => {
               <motion.div 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
-                className="text-center py-5 text-muted"
+                className="text-center py-5" style={{ color: 'var(--text-secondary)' }}
               >
                 <div className="mb-3 opacity-50"><CheckCircle size={48} /></div>
                 <h5>No jobs found</h5>
@@ -483,81 +460,81 @@ const Services = () => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-3 shadow-lg overflow-hidden"
-              style={{ width: '800px', maxWidth: '95%' }}
+              className="rounded-3 shadow-lg overflow-hidden"
+              style={{ width: '800px', maxWidth: '95%', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-4 border-bottom d-flex justify-content-between align-items-start">
+              <div className="p-4 border-bottom d-flex justify-content-between align-items-start" style={{ borderColor: 'var(--border-color)' }}>
                 <div>
-                  <h4 className="fw-bold mb-1">Job Details</h4>
-                  <p className="text-secondary mb-0">{selectedJob.car}</p>
+                  <h4 className="fw-bold mb-1" style={{ color: 'var(--text-primary)' }}>Job Details</h4>
+                  <p className="mb-0" style={{ color: 'var(--text-secondary)' }}>{selectedJob.car}</p>
                 </div>
-                <button onClick={() => setSelectedJob(null)} className="btn btn-link text-secondary p-0">
+                <button onClick={() => setSelectedJob(null)} className="btn btn-link p-0" style={{ color: 'var(--text-secondary)' }}>
                   <Menu size={24} style={{ transform: 'rotate(45deg)' }} /> {/* Using Menu as X icon substitute or import X */}
                 </button>
               </div>
 
-              <div className="p-4" style={{ backgroundColor: '#fff', maxHeight: '70vh', overflowY: 'auto' }}>
+              <div className="p-4" style={{ backgroundColor: 'var(--card-bg)', maxHeight: '70vh', overflowY: 'auto' }}>
                 <div className="row g-4 mb-4">
                   <div className="col-md-6">
-                    <label className="text-secondary small mb-1">Customer</label>
-                    <div className="fw-bold fs-5">{selectedJob.customer}</div>
+                    <label className="small mb-1" style={{ color: 'var(--text-secondary)' }}>Customer</label>
+                    <div className="fw-bold fs-5" style={{ color: 'var(--text-primary)' }}>{selectedJob.customer}</div>
                   </div>
                   <div className="col-md-6">
-                    <label className="text-secondary small mb-1">Status</label>
+                    <label className="small mb-1" style={{ color: 'var(--text-secondary)' }}>Status</label>
                     <div>
-                      <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+                      <span className="badge bg-opacity-10 px-3 py-2 rounded-pill" style={{ backgroundColor: 'rgba(0, 191, 255, 0.15)', color: '#00BFFF' }}>
                         {selectedJob.status}
                       </span>
                     </div>
                   </div>
                   <div className="col-12">
-                    <label className="text-secondary small mb-1">Service Type</label>
-                    <div className="fw-bold fs-5">{selectedJob.service}</div>
+                    <label className="small mb-1" style={{ color: 'var(--text-secondary)' }}>Service Type</label>
+                    <div className="fw-bold fs-5" style={{ color: 'var(--text-primary)' }}>{selectedJob.service}</div>
                   </div>
                   <div className="col-md-4">
-                    <label className="text-secondary small mb-1">Start Time</label>
-                    <div className="fw-bold fs-5">{selectedJob.started}</div>
+                    <label className="small mb-1" style={{ color: 'var(--text-secondary)' }}>Start Time</label>
+                    <div className="fw-bold fs-5" style={{ color: 'var(--text-primary)' }}>{selectedJob.started}</div>
                   </div>
                   <div className="col-md-4">
-                    <label className="text-secondary small mb-1">Labor Hours</label>
-                    <div className="fw-bold fs-5">{selectedJob.laborTime}</div>
+                    <label className="small mb-1" style={{ color: 'var(--text-secondary)' }}>Labor Hours</label>
+                    <div className="fw-bold fs-5" style={{ color: 'var(--text-primary)' }}>{selectedJob.laborTime}</div>
                   </div>
                   <div className="col-md-4">
-                    <label className="text-secondary small mb-1">Total Amount</label>
-                    <div className="fw-bold fs-5">{selectedJob.price}</div>
+                    <label className="small mb-1" style={{ color: 'var(--text-secondary)' }}>Total Amount</label>
+                    <div className="fw-bold fs-5" style={{ color: 'var(--text-primary)' }}>{selectedJob.price}</div>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-secondary small mb-2">Parts Used</label>
+                  <label className="small mb-2" style={{ color: 'var(--text-secondary)' }}>Parts Used</label>
                   <div className="d-flex flex-wrap gap-2">
                     {selectedJob.parts.length > 0 ? selectedJob.parts.map((part, i) => (
-                      <span key={i} className="bg-light border px-3 py-2 rounded-2">
+                      <span key={i} className="border px-3 py-2 rounded-2" style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}>
                         {part}
                       </span>
-                    )) : <span className="text-muted fst-italic">No parts recorded</span>}
+                    )) : <span className="fst-italic" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>No parts recorded</span>}
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <label className="text-secondary small mb-2">Progress</label>
-                  <div className="progress mb-2" style={{ height: '12px' }}>
+                  <label className="small mb-2" style={{ color: 'var(--text-secondary)' }}>Progress</label>
+                  <div className="progress mb-2" style={{ height: '12px', backgroundColor: 'var(--bg-tertiary)' }}>
                     <div 
                       className="progress-bar" 
                       role="progressbar" 
-                      style={{ width: `${selectedJob.progress}%`, backgroundColor: '#00BFFF' }}
+                      style={{ width: `${selectedJob.progress}%`, backgroundColor: 'var(--accent-primary)' }}
                     ></div>
                   </div>
-                  <div className="text-secondary small">{selectedJob.progress}% Complete</div>
+                  <div className="small" style={{ color: 'var(--text-secondary)' }}>{selectedJob.progress}% Complete</div>
                 </div>
               </div>
 
-              <div className="p-4 border-top bg-white d-flex gap-3 align-items-center">
-                 <button className="btn btn-primary flex-grow-1 py-3 border-0 fw-medium text-white" style={{ backgroundColor: '#00BFFF', fontSize: '1.1rem' }}>
+              <div className="p-4 border-top d-flex gap-3 align-items-center" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+                 <button className="btn btn-info flex-grow-1 py-3 border-0 fw-medium text-white" style={{ backgroundColor: '#00BFFF', fontSize: '1.1rem' }}>
                     Update Progress
                  </button>
-                 <button onClick={() => setSelectedJob(null)} className="btn btn-white border px-4 py-3 fw-medium bg-white text-secondary">
+                 <button onClick={() => setSelectedJob(null)} className="btn border px-4 py-3 fw-medium" style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }}>
                     Close
                  </button>
               </div>

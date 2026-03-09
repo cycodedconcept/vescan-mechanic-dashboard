@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AnimatePresence } from 'framer-motion';
 import SignUp from './SignUp';
 import SignIn from './SignIn';
+import ForgotPassword from './ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Services from './pages/Services';
 import Financial from './pages/Financial';
@@ -39,6 +40,14 @@ const AnimatedRoutes = () => {
             element={
               <PageTransition>
                 <SignIn />
+              </PageTransition>
+            } 
+          />
+          <Route 
+            path="/forgot-password" 
+            element={
+              <PageTransition>
+                <ForgotPassword />
               </PageTransition>
             } 
           />

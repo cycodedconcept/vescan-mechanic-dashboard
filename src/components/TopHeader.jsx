@@ -5,6 +5,20 @@ import { useOutletContext } from 'react-router-dom';
 const TopHeader = ({ title, subtitle = "Manage your business operations" }) => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
   
+  // Get user from localStorage
+  const userStr = localStorage.getItem('vescan_user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userName = user?.name || 'User';
+  
+  // Calculate initials (e.g., "John Doe" -> "JD")
+  const initials = userName
+    .split(' ')
+    .filter(n => n)
+    .map(n => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+  
   return (
     <div className="px-4 py-3 d-flex justify-content-between align-items-center flex-shrink-0 sticky-top" style={{ zIndex: 100, backgroundColor: 'var(--card-bg)', borderBottom: '1px solid var(--border-color)' }}>
       <div className="d-flex align-items-center gap-3">
@@ -30,7 +44,7 @@ const TopHeader = ({ title, subtitle = "Manage your business operations" }) => {
           </span>
         </div>
         <div className="text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '32px', height: '32px', fontSize: '0.8rem', backgroundColor: 'var(--sidebar-bg)' }}>
-          JD
+          {initials}
         </div>
       </div>
     </div>

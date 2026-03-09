@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const VescanLoader = ({ className = "flex-grow-1" }) => {
+const VescanLoader = ({ className = "flex-grow-1", text = "LOADING PROFILE" }) => {
   const brandBlue = '#008FBF';
 
   return (
@@ -79,7 +79,7 @@ const VescanLoader = ({ className = "flex-grow-1" }) => {
       </div>
       
       <div className="mt-2 fw-medium small text-uppercase" style={{ letterSpacing: '2px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-        LOADING PROFILE
+        {text}
       </div>
     </div>
   );

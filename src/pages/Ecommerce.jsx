@@ -2,25 +2,86 @@ import React, { useState, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import TopHeader from '../components/TopHeader';
-import { Search, ShoppingCart, Star, ChevronDown, Plus, Check, Menu, ArrowLeft, Trash2, Wallet, CreditCard, Building2 } from 'lucide-react';
+import { Search, ShoppingCart, Star, ChevronDown, Plus, Check, Menu, ArrowLeft, Trash2, Wallet, CreditCard, Building2, X } from 'lucide-react';
+import VescanLoader from '../components/VescanLoader';
 
-import { rawProducts, categoryLabels } from '../data/mockData';
+import { categoryLabels } from '../data/mockData';
 
 
 const Ecommerce = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
-  const [activeCondition, setActiveCondition] = useState("New");
+  const [activeCondition, setActiveCondition] = useState("Show All");
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [searchQuery, setSearchQuery] = useState("");
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Premium Brake Pads Set", price: 15000, quantity: 1, image: rawProducts[0].image, category: 'Brake System', seller: 'Premium Auto Supply' },
-    { id: 3, name: "Synthetic Engine Oil 5W-30", price: 4500, quantity: 1, image: rawProducts[2].image, category: 'Fluids & Oils', seller: 'Oil Masters Ltd' },
-    { id: 6, name: "Brake Fluid DOT 4", price: 2800, quantity: 1, image: rawProducts[5].image, category: 'Fluids & Oils', seller: 'Premium Auto Supply' }
-  ]);
+  const [cartItems, setCartItems] = useState([]);
   const [viewState, setViewState] = useState('products'); // 'products', 'cart', 'checkout'
   const [selectedPayment, setSelectedPayment] = useState('wallet');
   const [showNotification, setShowNotification] = useState(false);
   const [isConditionOpen, setIsConditionOpen] = useState(false);
+
+  const [apiCategories, setApiCategories] = useState([]);
+  const [apiProducts, setApiProducts] = useState([]);
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [productError, setProductError] = useState(null);
+
+  const [selectedProductDetails, setSelectedProductDetails] = useState(null);
+  const [isModalLoading, setIsModalLoading] = useState(false);
+
+  React.useEffect(() => {
+    // Fetch Categories
+    fetch('https://zubitechnologies.com/obd_final_apis/api/get_parent_category')
+      .then(res => res.json())
+      .then(data => {
+         if (data && Array.isArray(data.data)) {
+           setApiCategories(data.data);
+         } else if (Array.isArray(data)) {
+           setApiCategories(data);
+         }
+      })
+      .catch(console.error);
+
+    // Fetch Products
+    setIsLoadingProducts(true);
+    setProductError(null);
+    fetch('https://zubitechnologies.com/obd_final_apis/api/get_user_product')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then(result => {
+          if (result && Array.isArray(result.data)) {
+           // Map API fields to our UI fields
+           const mappedProducts = result.data.map((p, index) => ({
+             id: p.id,
+             name: p.product_name || 'Unknown Product',
+             price: Number(p.product_price) || 0,
+             image: p.product_image,
+             rating: p.rating || 4, // Default if missing
+             reviews: p.reviews || Math.floor(Math.random() * 50) + 5,
+             // The API doesn't return a 'condition' field (New/Tokunbo) natively.
+             // For the sake of the UI filter, we'll arbitrarily assign them, 
+             // We'll split them evenly based on index so the counts stay exactly identical 
+             // even if the component remounts and the API randomizes the returned products.
+             condition: index < Math.ceil(result.data.length / 2) ? 'New' : 'Tokunbo',
+             // The API doesn't return the text name of the category for each product,
+             // but we'll try to map it if we could. For now, we will leave it empty 
+             // and all items will show up under "All Products" when fetched.
+             category: 'All Products'
+           }));
+           setApiProducts(mappedProducts);
+         } else {
+           setProductError("Invalid Data format received from API");
+         }
+         setIsLoadingProducts(false);
+      })
+      .catch(err => {
+         console.error(err);
+         setProductError(err.message || "Failed to fetch products");
+         setIsLoadingProducts(false);
+      });
+  }, []);
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartSubtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -29,9 +90,9 @@ const Ecommerce = () => {
 
   // Filter based on selected condition (New/Tokunbo/Show All)
   const conditionFilteredProducts = useMemo(() => {
-    if (activeCondition === "Show All") return rawProducts;
-    return rawProducts.filter(p => p.condition === activeCondition);
-  }, [activeCondition]);
+    if (activeCondition === "Show All") return apiProducts;
+    return apiProducts.filter(p => p.condition === activeCondition);
+  }, [activeCondition, apiProducts]);
 
   // Dynamic counts for category pills based on the selected condition
   const categoriesWithCounts = useMemo(() => {
@@ -42,15 +103,44 @@ const Ecommerce = () => {
   }, [conditionFilteredProducts]);
 
   const addToCart = (product) => {
+    // Determine the correctly formatted product data structure (grid item vs detailed api item)
+    const productToAdd = {
+      id: product.id,
+      name: product.product_name || product.name,
+      price: Number(product.product_price) || product.price,
+      image: product.product_image || product.image,
+      seller: "Premium Auto Supply"
+    };
+
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => item.id === productToAdd.id);
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map(item => item.id === productToAdd.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { ...product, quantity: 1, seller: "Premium Auto Supply" }];
+      return [...prev, { ...productToAdd, quantity: 1 }];
     });
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 2000);
+  };
+
+  const handleProductClick = async (product) => {
+    setSelectedProductDetails(product); // Set basic grid info instantly
+    setIsModalLoading(true);
+    try {
+      const response = await fetch(`https://zubitechnologies.com/obd_final_apis/api/get_product_details/${product.id}`);
+      const data = await response.json();
+      if (data && !data.error) {
+        // Merge the extra details from the API response
+        setSelectedProductDetails(prev => ({
+          ...prev,
+          ...data
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsModalLoading(false);
+    }
   };
 
   const updateQuantity = (id, delta) => {
@@ -70,7 +160,8 @@ const Ecommerce = () => {
   const finalFilteredProducts = useMemo(() => {
     return conditionFilteredProducts.filter(product => {
       const matchesCategory = activeCategory === "All Products" || product.category === activeCategory;
-      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const productName = product.name || "";
+      const matchesSearch = productName.toLowerCase().includes((searchQuery || "").toLowerCase());
       return matchesCategory && matchesSearch;
     });
   }, [conditionFilteredProducts, activeCategory, searchQuery]);
@@ -404,23 +495,100 @@ const Ecommerce = () => {
           </div>
           
           <div className="d-flex gap-2 flex-wrap">
-            {categoriesWithCounts.map((cat, idx) => (
-              <button 
-                key={idx}
-                onClick={() => setActiveCategory(cat.name)}
-                className={`btn rounded-pill px-3 py-2 border-0 d-flex align-items-center gap-2 transition-all ${
-                  activeCategory === cat.name ? 'text-white' : 'text-secondary'
-                }`}
-                style={{ 
-                  fontSize: '0.85rem', 
-                  backgroundColor: activeCategory === cat.name ? 'var(--sidebar-bg)' : 'var(--bg-secondary)',
-                  fontWeight: '500',
-                  border: activeCategory === cat.name ? 'none' : '1px solid var(--border-color)'
-                }}
-              >
-                {cat.name} <span className="opacity-75">({cat.count})</span>
-              </button>
-            ))}
+            {/* All Products pill */}
+            <button 
+              onClick={() => {
+                setActiveCategory("All Products");
+                setOpenDropdownId(null);
+              }}
+              className={`btn rounded-pill px-3 py-2 border-0 d-flex align-items-center gap-2 transition-all ${
+                activeCategory === "All Products" ? 'text-white' : 'text-secondary'
+              }`}
+              style={{ 
+                fontSize: '0.85rem', 
+                backgroundColor: activeCategory === "All Products" ? 'var(--sidebar-bg)' : 'var(--bg-secondary)',
+                fontWeight: '500',
+                border: activeCategory === "All Products" ? 'none' : '1px solid var(--border-color)'
+              }}
+            >
+              All Products <span className="opacity-75">({conditionFilteredProducts.length})</span>
+            </button>
+
+            {/* API Categories */}
+            {apiCategories.map((cat) => {
+              const hasSub = cat.sub_category && cat.sub_category.length > 0;
+              const isCatActive = activeCategory === cat.parent_category_name || (hasSub && cat.sub_category.some(sub => sub.name === activeCategory));
+              const catCount = conditionFilteredProducts.filter(p => p.category === cat.parent_category_name).length; // Local dummy count matching name
+              
+              return (
+                <div key={cat.parent_id} className="position-relative">
+                  <button 
+                    onClick={() => {
+                      if (hasSub) {
+                        setOpenDropdownId(openDropdownId === cat.parent_id ? null : cat.parent_id);
+                      } else {
+                        setActiveCategory(cat.parent_category_name);
+                        setOpenDropdownId(null);
+                      }
+                    }}
+                    className={`btn rounded-pill px-3 py-2 border-0 d-flex align-items-center gap-2 transition-all ${
+                      isCatActive ? 'text-white' : 'text-secondary'
+                    }`}
+                    style={{ 
+                      fontSize: '0.85rem', 
+                      backgroundColor: isCatActive ? 'var(--sidebar-bg)' : 'var(--bg-secondary)',
+                      fontWeight: '500',
+                      border: isCatActive ? 'none' : '1px solid var(--border-color)',
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    {cat.parent_category_name} 
+                    {!hasSub && <span className="opacity-75">({catCount})</span>}
+                    {hasSub && <ChevronDown size={14} className={openDropdownId === cat.parent_id ? "rotate-180" : ""} />}
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {hasSub && (
+                    <motion.div 
+                      initial={false}
+                      animate={{ 
+                        opacity: openDropdownId === cat.parent_id ? 1 : 0,
+                        y: openDropdownId === cat.parent_id ? 5 : -5,
+                        pointerEvents: openDropdownId === cat.parent_id ? 'auto' : 'none'
+                      }}
+                      className="position-absolute mt-1 shadow-sm rounded-3 border overflow-hidden"
+                      style={{ minWidth: '150px', zIndex: 1000, left: 0, backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}
+                    >
+                      <div className="d-flex flex-column p-1">
+                        <button
+                          onClick={() => {
+                            setActiveCategory(cat.parent_category_name);
+                            setOpenDropdownId(null);
+                          }}
+                          className={`btn btn-link text-start text-decoration-none px-3 py-2 hover-bg-light ${activeCategory === cat.parent_category_name ? 'fw-bold' : ''}`}
+                          style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}
+                        >
+                          All {cat.parent_category_name} 
+                        </button>
+                        {cat.sub_category.map(sub => (
+                          <button
+                            key={sub.id}
+                            onClick={() => {
+                              setActiveCategory(sub.name);
+                              setOpenDropdownId(null);
+                            }}
+                            className={`btn btn-link text-start text-decoration-none px-3 py-2 hover-bg-light ${activeCategory === sub.name ? 'fw-bold' : ''}`}
+                            style={{ fontSize: '0.85rem', textTransform: 'capitalize', color: 'var(--text-primary)' }}
+                          >
+                            {sub.name}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -429,15 +597,32 @@ const Ecommerce = () => {
         {/* Product Grid */}
         <AnimatePresence mode="wait">
           <motion.div 
-            key={activeCondition + activeCategory + searchQuery}
-            variants={container}
-            initial="hidden"
-            animate="show"
+            key={activeCondition + activeCategory + searchQuery + (isLoadingProducts ? 'loading' : 'loaded')}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="row g-4"
           >
-            {finalFilteredProducts.length > 0 ? (
-              finalFilteredProducts.map((product) => (
-                <motion.div key={product.id} variants={item} className="col-12 col-md-6">
+            {isLoadingProducts ? (
+              <div className="col-12 py-5">
+                <VescanLoader text="LOADING PRODUCTS" />
+              </div>
+            ) : productError ? (
+              <div className="col-12 text-center py-5">
+                <div className="alert alert-danger d-inline-block px-4 py-3" role="alert">
+                  <h6 className="fw-bold mb-1">Error Loading Products</h6>
+                  <p className="mb-0 small">{productError}</p>
+                </div>
+              </div>
+            ) : finalFilteredProducts.length > 0 ? (
+              finalFilteredProducts.map((product, index) => (
+                <motion.div 
+                  key={product.id} 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="col-12 col-md-6"
+                >
                   <div className="card border-0 shadow-sm h-100 rounded-4 overflow-hidden product-card position-relative" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
                     {/* Condition Badge on top left of image */}
                     <div 
@@ -452,7 +637,11 @@ const Ecommerce = () => {
                       {product.condition}
                     </div>
 
-                    <div className="bg-light d-flex align-items-center justify-content-center p-0 overflow-hidden" style={{ height: '350px' }}>
+                    <div 
+                      className="bg-light d-flex align-items-center justify-content-center p-0 overflow-hidden cursor-pointer" 
+                      style={{ height: '350px', cursor: 'pointer' }}
+                      onClick={() => handleProductClick(product)}
+                    >
                       <img 
                         src={product.image} 
                         alt={product.name} 
@@ -495,6 +684,107 @@ const Ecommerce = () => {
       </div>
       </div>
       )}
+
+      {/* Product Details Modal Overlay */}
+      <AnimatePresence>
+        {selectedProductDetails && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+            style={{ zIndex: 1050, backgroundColor: 'rgba(0,0,0,0.6)', padding: '20px', backdropFilter: 'blur(3px)' }}
+            onClick={() => setSelectedProductDetails(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="rounded-4 overflow-hidden shadow-lg position-relative d-flex flex-column flex-md-row border"
+              style={{ maxWidth: '900px', width: '100%', maxHeight: '90vh', backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                className="btn position-absolute top-0 end-0 m-3 p-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                onClick={() => setSelectedProductDetails(null)}
+                style={{ zIndex: 10, border: '1px solid var(--border-color)', width: '36px', height: '36px', backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}
+              >
+                <X size={18} />
+              </button>
+              
+              <div className="d-flex align-items-center justify-content-center border-end" style={{ flex: '1 1 50%', minHeight: '300px', backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border-color)' }}>
+                <img 
+                  src={selectedProductDetails.product_image || selectedProductDetails.image} 
+                  alt={selectedProductDetails.product_name || selectedProductDetails.name} 
+                  className="w-100 h-100 object-fit-cover" 
+                  style={{ maxHeight: '90vh' }}
+                />
+              </div>
+
+              <div className="p-4 p-md-5 d-flex flex-column overflow-auto" style={{ flex: '1 1 50%' }}>
+                {isModalLoading ? (
+                   <div className="d-flex flex-column justify-content-center align-items-center h-100">
+                     <VescanLoader text="LOADING DETAILS" className="" />
+                   </div>
+                ) : (
+                  <>
+                    <div className="mb-3">
+                      <span 
+                        className="px-3 py-1 rounded-pill text-white fw-bold shadow-sm" 
+                        style={{ fontSize: '0.75rem', backgroundColor: selectedProductDetails.condition === 'New' ? '#0099C2' : '#64748b', textTransform: 'uppercase' }}
+                      >
+                        {selectedProductDetails.condition || 'New'}
+                      </span>
+                    </div>
+                    <h3 className="fw-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                      {selectedProductDetails.product_name || selectedProductDetails.name}
+                    </h3>
+                    
+                    <div className="d-flex align-items-center gap-2 mb-4">
+                      <div className="d-flex text-warning">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={18} 
+                            fill={i < (selectedProductDetails.rating || 4) ? "currentColor" : "none"} 
+                            className={i < (selectedProductDetails.rating || 4) ? "" : "opacity-25"} 
+                            style={{ color: i < (selectedProductDetails.rating || 4) ? '' : 'var(--text-secondary)' }}
+                          />
+                        ))}
+                      </div>
+                      <span className="fw-medium" style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>
+                        ({selectedProductDetails.reviews || 24} reviews)
+                      </span>
+                    </div>
+                    
+                    <h2 className="fw-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+                      ₦{Number(selectedProductDetails.product_price || selectedProductDetails.price).toLocaleString()}
+                    </h2>
+                    
+                    <h6 className="fw-bold mb-3" style={{ color: 'var(--text-primary)', fontSize: '1.1rem' }}>Description</h6>
+                    <p className="mb-5" style={{ fontSize: '0.95rem', lineHeight: '1.7', color: 'var(--text-secondary)' }}>
+                      {selectedProductDetails.product_details || "No detailed description provided by the seller for this item."}
+                    </p>
+
+                    <div className="mt-auto pt-4 border-top" style={{ borderColor: 'var(--border-color)' }}>
+                       <button 
+                         onClick={() => { 
+                           addToCart(selectedProductDetails); 
+                           setSelectedProductDetails(null); 
+                         }} 
+                         className="btn w-100 py-3 fw-bold rounded-3 text-white d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                         style={{ backgroundColor: '#001F3F', fontSize: '1rem' }}
+                       >
+                         <Plus size={20} /> Add to Cart
+                       </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style>{`
         .product-card {

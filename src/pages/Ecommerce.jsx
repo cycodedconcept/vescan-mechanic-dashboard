@@ -5,13 +5,14 @@ import TopHeader from '../components/TopHeader';
 import { Search, ShoppingCart, Star, ChevronDown, Plus, Check, Menu, ArrowLeft, Trash2, Wallet, CreditCard, Building2, X } from 'lucide-react';
 import VescanLoader from '../components/VescanLoader';
 
-import { categoryLabels } from '../data/mockData';
-
+const BASE_URL = 'https://zubitechnologies.com/obd_final_apis/api';
 
 const Ecommerce = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
   const [activeCondition, setActiveCondition] = useState("Show All");
   const [activeCategory, setActiveCategory] = useState("All Products");
+  const [activeCategoryId, setActiveCategoryId] = useState(null);
+  const [activeSubCategoryId, setActiveSubCategoryId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [viewState, setViewState] = useState('products'); // 'products', 'cart', 'checkout'
@@ -21,6 +22,7 @@ const Ecommerce = () => {
 
   const [apiCategories, setApiCategories] = useState([]);
   const [apiProducts, setApiProducts] = useState([]);
+  const [categoryCounts, setCategoryCounts] = useState({}); // { all: N, p_26: N, s_23: N, ... }
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
@@ -29,59 +31,92 @@ const Ecommerce = () => {
   const [selectedProductDetails, setSelectedProductDetails] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
 
+  const fetchProducts = React.useCallback(async (parentCatId = null, subCategoryId = null) => {
+    setIsLoadingProducts(true);
+    setProductError(null);
+
+    const token = localStorage.getItem('vescan_token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    let allProducts = [];
+    let page = 1;
+    let hasMore = true;
+
+    try {
+      while (hasMore) {
+        let url = `${BASE_URL}/get_user_product?page=${page}`;
+        if (subCategoryId !== null) {
+          url = `${BASE_URL}/get_user_product?sub_category=${subCategoryId}&page=${page}`;
+        } else if (parentCatId !== null) {
+          url = `${BASE_URL}/get_user_product?parent_cat_id=${parentCatId}&page=${page}`;
+        }
+
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const result = await res.json();
+
+        if (result && Array.isArray(result.data)) {
+          const mapped = result.data.map((p, index) => ({
+            id: p.id,
+            name: p.product_name || 'Unknown Product',
+            price: Number(p.product_price) || 0,
+            image: p.product_image,
+            rating: p.rating || 4,
+            reviews: p.reviews || 0,
+            condition: (allProducts.length + index) % 2 === 0 ? 'New' : 'Tokunbo',
+          }));
+          allProducts = [...allProducts, ...mapped];
+          hasMore = result.next_page_url !== null;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+      setApiProducts(allProducts);
+    } catch (err) {
+      console.error(err);
+      setProductError(err.message || "Failed to fetch products");
+    } finally {
+      setIsLoadingProducts(false);
+    }
+  }, []);
+
+  const fetchCategoryCounts = React.useCallback(async (categories) => {
+    const token = localStorage.getItem('vescan_token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const keys = ['all'];
+    const requests = [fetch(`${BASE_URL}/get_user_product?page=1`, { headers }).then(r => r.json()).catch(() => null)];
+
+    for (const cat of categories) {
+      keys.push(`p_${cat.parent_id}`);
+      requests.push(fetch(`${BASE_URL}/get_user_product?parent_cat_id=${cat.parent_id}&page=1`, { headers }).then(r => r.json()).catch(() => null));
+      for (const sub of (cat.sub_category || [])) {
+        keys.push(`s_${sub.id}`);
+        requests.push(fetch(`${BASE_URL}/get_user_product?sub_category=${sub.id}&page=1`, { headers }).then(r => r.json()).catch(() => null));
+      }
+    }
+
+    const results = await Promise.all(requests);
+    const counts = {};
+    results.forEach((data, i) => { counts[keys[i]] = data?.total ?? 0; });
+    setCategoryCounts(counts);
+  }, []);
+
   React.useEffect(() => {
-    // Fetch Categories
-    fetch('https://zubitechnologies.com/obd_final_apis/api/get_parent_category')
+    // Fetch Categories then immediately fetch their counts
+    fetch(`${BASE_URL}/get_parent_category`)
       .then(res => res.json())
       .then(data => {
-         if (data && Array.isArray(data.data)) {
-           setApiCategories(data.data);
-         } else if (Array.isArray(data)) {
-           setApiCategories(data);
-         }
+        const cats = Array.isArray(data) ? data : (data?.data || []);
+        setApiCategories(cats);
+        fetchCategoryCounts(cats);
       })
       .catch(console.error);
 
-    // Fetch Products
-    setIsLoadingProducts(true);
-    setProductError(null);
-    fetch('https://zubitechnologies.com/obd_final_apis/api/get_user_product')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        return res.json();
-      })
-      .then(result => {
-          if (result && Array.isArray(result.data)) {
-           // Map API fields to our UI fields
-           const mappedProducts = result.data.map((p, index) => ({
-             id: p.id,
-             name: p.product_name || 'Unknown Product',
-             price: Number(p.product_price) || 0,
-             image: p.product_image,
-             rating: p.rating || 4, // Default if missing
-             reviews: p.reviews || Math.floor(Math.random() * 50) + 5,
-             // The API doesn't return a 'condition' field (New/Tokunbo) natively.
-             // For the sake of the UI filter, we'll arbitrarily assign them, 
-             // We'll split them evenly based on index so the counts stay exactly identical 
-             // even if the component remounts and the API randomizes the returned products.
-             condition: index < Math.ceil(result.data.length / 2) ? 'New' : 'Tokunbo',
-             // The API doesn't return the text name of the category for each product,
-             // but we'll try to map it if we could. For now, we will leave it empty 
-             // and all items will show up under "All Products" when fetched.
-             category: 'All Products'
-           }));
-           setApiProducts(mappedProducts);
-         } else {
-           setProductError("Invalid Data format received from API");
-         }
-         setIsLoadingProducts(false);
-      })
-      .catch(err => {
-         console.error(err);
-         setProductError(err.message || "Failed to fetch products");
-         setIsLoadingProducts(false);
-      });
-  }, []);
+    // Fetch all products on mount
+    fetchProducts();
+  }, [fetchProducts, fetchCategoryCounts]);
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartSubtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -94,13 +129,8 @@ const Ecommerce = () => {
     return apiProducts.filter(p => p.condition === activeCondition);
   }, [activeCondition, apiProducts]);
 
-  // Dynamic counts for category pills based on the selected condition
-  const categoriesWithCounts = useMemo(() => {
-    return categoryLabels.map(cat => ({
-      name: cat,
-      count: cat === "All Products" ? conditionFilteredProducts.length : conditionFilteredProducts.filter(p => p.category === cat).length
-    }));
-  }, [conditionFilteredProducts]);
+  // categoriesWithCounts just passes through apiCategories — counts come from the API fetch per category
+  const categoriesWithCounts = apiCategories;
 
   const addToCart = (product) => {
     // Determine the correctly formatted product data structure (grid item vs detailed api item)
@@ -159,12 +189,10 @@ const Ecommerce = () => {
 
   const finalFilteredProducts = useMemo(() => {
     return conditionFilteredProducts.filter(product => {
-      const matchesCategory = activeCategory === "All Products" || product.category === activeCategory;
       const productName = product.name || "";
-      const matchesSearch = productName.toLowerCase().includes((searchQuery || "").toLowerCase());
-      return matchesCategory && matchesSearch;
+      return productName.toLowerCase().includes((searchQuery || "").toLowerCase());
     });
-  }, [conditionFilteredProducts, activeCategory, searchQuery]);
+  }, [conditionFilteredProducts, searchQuery]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -496,10 +524,13 @@ const Ecommerce = () => {
           
           <div className="d-flex gap-2 flex-wrap">
             {/* All Products pill */}
-            <button 
+            <button
               onClick={() => {
                 setActiveCategory("All Products");
+                setActiveCategoryId(null);
+                setActiveSubCategoryId(null);
                 setOpenDropdownId(null);
+                fetchProducts();
               }}
               className={`btn rounded-pill px-3 py-2 border-0 d-flex align-items-center gap-2 transition-all ${
                 activeCategory === "All Products" ? 'text-white' : 'text-secondary'
@@ -511,24 +542,26 @@ const Ecommerce = () => {
                 border: activeCategory === "All Products" ? 'none' : '1px solid var(--border-color)'
               }}
             >
-              All Products <span className="opacity-75">({conditionFilteredProducts.length})</span>
+              All Products <span className="opacity-75">({categoryCounts.all ?? 0})</span>
             </button>
 
             {/* API Categories */}
-            {apiCategories.map((cat) => {
+            {categoriesWithCounts.map((cat) => {
               const hasSub = cat.sub_category && cat.sub_category.length > 0;
-              const isCatActive = activeCategory === cat.parent_category_name || (hasSub && cat.sub_category.some(sub => sub.name === activeCategory));
-              const catCount = conditionFilteredProducts.filter(p => p.category === cat.parent_category_name).length; // Local dummy count matching name
-              
+              const isCatActive = activeCategoryId === Number(cat.parent_id);
+
               return (
                 <div key={cat.parent_id} className="position-relative">
-                  <button 
+                  <button
                     onClick={() => {
                       if (hasSub) {
                         setOpenDropdownId(openDropdownId === cat.parent_id ? null : cat.parent_id);
                       } else {
                         setActiveCategory(cat.parent_category_name);
+                        setActiveCategoryId(Number(cat.parent_id));
+                        setActiveSubCategoryId(null);
                         setOpenDropdownId(null);
+                        fetchProducts(cat.parent_id);
                       }
                     }}
                     className={`btn rounded-pill px-3 py-2 border-0 d-flex align-items-center gap-2 transition-all ${
@@ -542,8 +575,8 @@ const Ecommerce = () => {
                       textTransform: 'capitalize'
                     }}
                   >
-                    {cat.parent_category_name} 
-                    {!hasSub && <span className="opacity-75">({catCount})</span>}
+                    {cat.parent_category_name}
+                    {!hasSub && <span className="opacity-75">({categoryCounts[`p_${cat.parent_id}`] ?? 0})</span>}
                     {hasSub && <ChevronDown size={14} className={openDropdownId === cat.parent_id ? "rotate-180" : ""} />}
                   </button>
 
@@ -563,24 +596,32 @@ const Ecommerce = () => {
                         <button
                           onClick={() => {
                             setActiveCategory(cat.parent_category_name);
+                            setActiveCategoryId(Number(cat.parent_id));
+                            setActiveSubCategoryId(null);
                             setOpenDropdownId(null);
+                            fetchProducts(cat.parent_id);
                           }}
-                          className={`btn btn-link text-start text-decoration-none px-3 py-2 hover-bg-light ${activeCategory === cat.parent_category_name ? 'fw-bold' : ''}`}
+                          className={`btn btn-link text-start text-decoration-none px-3 py-2 hover-bg-light d-flex justify-content-between align-items-center gap-3 ${activeCategoryId === Number(cat.parent_id) && activeSubCategoryId === null ? 'fw-bold' : ''}`}
                           style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}
                         >
-                          All {cat.parent_category_name} 
+                          <span>All {cat.parent_category_name}</span>
+                          <span className="text-secondary" style={{ fontSize: '0.8rem' }}>({categoryCounts[`p_${cat.parent_id}`] ?? 0})</span>
                         </button>
                         {cat.sub_category.map(sub => (
                           <button
                             key={sub.id}
                             onClick={() => {
                               setActiveCategory(sub.name);
+                              setActiveCategoryId(Number(cat.parent_id));
+                              setActiveSubCategoryId(Number(sub.id));
                               setOpenDropdownId(null);
+                              fetchProducts(null, sub.id);
                             }}
-                            className={`btn btn-link text-start text-decoration-none px-3 py-2 hover-bg-light ${activeCategory === sub.name ? 'fw-bold' : ''}`}
+                            className={`btn btn-link text-start text-decoration-none px-3 py-2 hover-bg-light d-flex justify-content-between align-items-center gap-3 ${activeSubCategoryId === Number(sub.id) ? 'fw-bold' : ''}`}
                             style={{ fontSize: '0.85rem', textTransform: 'capitalize', color: 'var(--text-primary)' }}
                           >
-                            {sub.name}
+                            <span>{sub.name}</span>
+                            <span className="text-secondary" style={{ fontSize: '0.8rem' }}>({categoryCounts[`s_${sub.id}`] ?? 0})</span>
                           </button>
                         ))}
                       </div>

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://pluralcodesandbox.com/obd_final_apis/api/customer_order_history\" -H \"Authorization: Bearer test\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://zubitechnologies.com/obd_final_apis/api/customer_order_history\" -H \"Authorization: Bearer test\")",
+      "Bash(curl -s \"https://zubitechnologies.com/obd_final_apis/api/customer_order_history\" -H \"Authorization: Bearer test\")",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\" \"https://zubitechnologies.com/obd_final_apis/api/customer_order_history\" -H \"Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test\")"
+    ]
+  }
+}

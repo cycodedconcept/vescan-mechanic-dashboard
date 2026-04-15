@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useOutletContext, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import TopHeader from '../components/TopHeader';
 import { Search, ShoppingCart, Star, ChevronDown, Plus, Check, Menu, ArrowLeft, Trash2, Wallet, CreditCard, Building2, X } from 'lucide-react';
@@ -9,16 +9,40 @@ const BASE_URL = 'https://zubitechnologies.com/obd_final_apis/api';
 
 const Ecommerce = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewState = searchParams.get('view') || 'products';
+  const setViewState = (view) => setSearchParams(view === 'products' ? {} : { view });
+
   const [activeCondition, setActiveCondition] = useState("Show All");
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [activeSubCategoryId, setActiveSubCategoryId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [cartItems, setCartItems] = useState([]);
-  const [viewState, setViewState] = useState('products'); // 'products', 'cart', 'checkout'
-  const [selectedPayment, setSelectedPayment] = useState('wallet');
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vescan_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [selectedPayment, setSelectedPayment] = useState('paystack');
   const [showNotification, setShowNotification] = useState(false);
   const [isConditionOpen, setIsConditionOpen] = useState(false);
+
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentTotal, setPaymentTotal] = useState(0);
+  const [paidCartItems, setPaidCartItems] = useState([]);
+  const [productReviews, setProductReviews] = useState({}); // { [id]: { rating, text } }
+  const [submittedReviewIds, setSubmittedReviewIds] = useState(new Set());
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryState, setDeliveryState] = useState('');
+  const [deliveryPhone, setDeliveryPhone] = useState(() => {
+    try { const u = JSON.parse(localStorage.getItem('vescan_user') || '{}'); return u.phone_number || u.phone || ''; } catch { return ''; }
+  });
 
   const [apiCategories, setApiCategories] = useState([]);
   const [apiProducts, setApiProducts] = useState([]);
@@ -30,6 +54,184 @@ const Ecommerce = () => {
 
   const [selectedProductDetails, setSelectedProductDetails] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('vescan_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  // Detect Paystack redirect back after payment, verify with backend, then show success
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const reference = searchParams.get('reference') || searchParams.get('trxref');
+    if (!paymentStatus || !reference) return;
+
+    const verifyAndShowSuccess = async () => {
+      // Read localStorage immediately (sync) before any async work so StrictMode's
+      // double-invoke doesn't read empty values after the first run clears them.
+      const savedCart = JSON.parse(localStorage.getItem('vescan_cart') || '[]');
+      const savedTotal = Number(localStorage.getItem('vescan_payment_total') || 0);
+      const cartId = localStorage.getItem('vescan_cart_id') || '';
+
+      setIsVerifyingPayment(true);
+      setSearchParams({ view: 'verifying' }, { replace: true });
+
+      try {
+        const token = localStorage.getItem('vescan_token');
+        const formData = new FormData();
+        formData.append('cart_id', cartId);
+        formData.append('reference', reference);
+        const vpRes = await fetch(`${BASE_URL}/verify_payments`, {
+          method: 'POST',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          body: formData,
+        });
+        const vpText = await vpRes.text();
+        console.log('[verify_payments] status:', vpRes.status, '| body:', vpText.slice(0, 300));
+      } catch (err) {
+        console.error('[verify_payments] error:', err);
+      } finally {
+        // Always proceed to success page — payment happened on Paystack regardless
+        setPaymentReference(reference);
+        setPaymentTotal(savedTotal);
+        setPaidCartItems(savedCart);
+        const initReviews = {};
+        savedCart.forEach(item => { initReviews[item.id] = { rating: 0, text: '' }; });
+        setProductReviews(initReviews);
+        setIsVerifyingPayment(false);
+        setCartItems([]);
+        localStorage.removeItem('vescan_cart');
+        localStorage.removeItem('vescan_cart_id');
+        localStorage.removeItem('vescan_payment_total');
+        setSearchParams({ view: 'success' }, { replace: true });
+      }
+    };
+
+    verifyAndShowSuccess();
+  }, []);
+
+  const handleCompletePayment = async () => {
+    if (selectedPayment !== 'paystack') return;
+    const user = JSON.parse(localStorage.getItem('vescan_user') || '{}');
+    const email = user.email;
+    if (!email) {
+      alert('Could not find your email. Please sign in again.');
+      return;
+    }
+    setIsPaymentLoading(true);
+    console.log('[payment] vescan_user fields:', Object.keys(user), '| phone_number:', user.phone_number, '| phone:', user.phone);
+    try {
+      const token = localStorage.getItem('vescan_token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      // Step 1: verify_checkout_products — creates backend order and returns real cart_id
+      if (!deliveryAddress.trim() || !deliveryState.trim() || !deliveryPhone.trim()) {
+        alert('Please fill in your phone number, street address, and state before proceeding.');
+        setIsPaymentLoading(false);
+        return;
+      }
+      const products = cartItems.map(item => ({
+        product_name: item.name,
+        product_price: String(item.price),
+        product_id: String(item.id),
+        owner_id: String(item.owner_id || ''),
+        phone_number: item.phone_number || deliveryPhone.trim(),
+        state: deliveryState.trim(),
+        destination_address: deliveryAddress.trim(),
+        product_quantity: String(item.quantity),
+        product_image: item.image || '',
+        image_url: item.image || '',
+        LINK: item.image || '',
+      }));
+
+      console.log('[verify_checkout_products] sending products:', JSON.stringify(products).slice(0, 600));
+      console.log('[verify_checkout_products] total_amount:', cartSubtotal);
+
+      const vcpFormData = new FormData();
+      vcpFormData.append('products', JSON.stringify(products));
+      vcpFormData.append('total_amount', cartSubtotal);
+      vcpFormData.append('phone_number', deliveryPhone.trim());
+      vcpFormData.append('state', deliveryState.trim());
+      vcpFormData.append('destination_address', deliveryAddress.trim());
+
+      let cartId = null;
+      try {
+        const vcpRes = await fetch(`${BASE_URL}/verify_checkout_products`, {
+          method: 'POST',
+          headers,
+          body: vcpFormData,
+        });
+        const vcpText = await vcpRes.text();
+        console.log('[verify_checkout_products] status:', vcpRes.status, '| body:', vcpText.slice(0, 400));
+        const vcpResult = JSON.parse(vcpText);
+        cartId = vcpResult.cart_id ?? vcpResult.data?.cart_id ?? null;
+        console.log('[verify_checkout_products] cart_id:', cartId, '| full result:', JSON.stringify(vcpResult).slice(0, 200));
+      } catch (vcpErr) {
+        console.error('[verify_checkout_products] error:', vcpErr);
+      }
+
+      if (cartId) localStorage.setItem('vescan_cart_id', String(cartId));
+      localStorage.setItem('vescan_payment_total', cartTotal);
+
+      // Step 2: initialize_payment — get Paystack authorization URL
+      const callbackUrl = `${window.location.origin}/ecommerce?payment=success`;
+      const ipFormData = new FormData();
+      ipFormData.append('email', email);
+      ipFormData.append('amount', cartTotal);
+      ipFormData.append('link', callbackUrl);
+
+      const res = await fetch(`${BASE_URL}/initialize_payment`, {
+        method: 'POST',
+        headers,
+        body: ipFormData,
+      });
+      const result = await res.json();
+      console.log('[initialize_payment] status:', res.status, '| result:', JSON.stringify(result).slice(0, 400));
+      if (result.status && result.data?.authorization_url) {
+        window.location.href = result.data.authorization_url;
+      } else {
+        alert(result.message || 'Payment initialization failed. Please try again.');
+        setIsPaymentLoading(false);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error. Please check your connection and try again.');
+      setIsPaymentLoading(false);
+    }
+  };
+
+  const handleContinueShopping = () => {
+    setCartItems([]);
+    localStorage.removeItem('vescan_cart');
+    localStorage.removeItem('vescan_payment_total');
+    setViewState('products');
+  };
+
+  const handleReviewChange = (productId, field, value) => {
+    setProductReviews(prev => ({ ...prev, [productId]: { ...prev[productId], [field]: value } }));
+  };
+
+  const handleSubmitProductReview = async (product) => {
+    const review = productReviews[product.id];
+    if (!review || review.rating === 0) return;
+    setIsSubmittingReview(true);
+    try {
+      const token = localStorage.getItem('vescan_token');
+      const formData = new FormData();
+      formData.append('product_id', product.id);
+      formData.append('rating', review.rating);
+      formData.append('reviews', review.text);
+      await fetch(`${BASE_URL}/review_product`, {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData,
+      });
+      setSubmittedReviewIds(prev => new Set([...prev, product.id]));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const fetchProducts = React.useCallback(async (parentCatId = null, subCategoryId = null) => {
     setIsLoadingProducts(true);
@@ -56,6 +258,7 @@ const Ecommerce = () => {
         const result = await res.json();
 
         if (result && Array.isArray(result.data)) {
+          if (page === 1 && result.data[0]) console.log('[fetchProducts] raw first product keys:', Object.keys(result.data[0]), '| sample:', JSON.stringify(result.data[0]).slice(0, 400));
           const mapped = result.data.map((p, index) => ({
             id: p.id,
             name: p.product_name || 'Unknown Product',
@@ -64,6 +267,8 @@ const Ecommerce = () => {
             rating: p.rating || 4,
             reviews: p.reviews || 0,
             condition: (allProducts.length + index) % 2 === 0 ? 'New' : 'Tokunbo',
+            owner_id: p.owner_id,
+            phone_number: p.phone_number,
           }));
           allProducts = [...allProducts, ...mapped];
           hasMore = result.next_page_url !== null;
@@ -72,7 +277,9 @@ const Ecommerce = () => {
           hasMore = false;
         }
       }
-      setApiProducts(allProducts);
+      const seen = new Set();
+      const unique = allProducts.filter(p => seen.has(p.id) ? false : seen.add(p.id));
+      setApiProducts(unique);
     } catch (err) {
       console.error(err);
       setProductError(err.message || "Failed to fetch products");
@@ -104,19 +311,68 @@ const Ecommerce = () => {
   }, []);
 
   React.useEffect(() => {
-    // Fetch Categories then immediately fetch their counts
+    const token = localStorage.getItem('vescan_token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const fetchAllByCategory = async (cats) => {
+      setIsLoadingProducts(true);
+      setProductError(null);
+      try {
+        // Fetch every parent category in parallel (all pages each)
+        const fetchCatPages = async (parentId) => {
+          const items = [];
+          let page = 1;
+          let hasMore = true;
+          while (hasMore) {
+            const res = await fetch(`${BASE_URL}/get_user_product?parent_cat_id=${parentId}&page=${page}`, { headers });
+            if (!res.ok) break;
+            const result = await res.json();
+            if (result && Array.isArray(result.data)) {
+              items.push(...result.data);
+              hasMore = result.next_page_url !== null;
+              page++;
+            } else { hasMore = false; }
+          }
+          return items;
+        };
+
+        const perCatResults = await Promise.all(cats.map(cat => fetchCatPages(cat.parent_id)));
+        const combined = perCatResults.flat();
+
+        const seen = new Set();
+        const unique = combined.filter(p => seen.has(p.id) ? false : seen.add(p.id));
+
+        const mapped = unique.map((p, index) => ({
+          id: p.id,
+          name: p.product_name || 'Unknown Product',
+          price: Number(p.product_price) || 0,
+          image: p.product_image,
+          rating: p.rating || 4,
+          reviews: p.reviews || 0,
+          condition: index % 2 === 0 ? 'New' : 'Tokunbo',
+          owner_id: p.owner_id,
+          phone_number: p.phone_number,
+        }));
+
+        setApiProducts(mapped);
+      } catch (err) {
+        console.error(err);
+        setProductError(err.message || 'Failed to fetch products');
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+
     fetch(`${BASE_URL}/get_parent_category`)
       .then(res => res.json())
       .then(data => {
         const cats = Array.isArray(data) ? data : (data?.data || []);
         setApiCategories(cats);
         fetchCategoryCounts(cats);
+        fetchAllByCategory(cats);
       })
       .catch(console.error);
-
-    // Fetch all products on mount
-    fetchProducts();
-  }, [fetchProducts, fetchCategoryCounts]);
+  }, [fetchCategoryCounts]);
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartSubtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -139,7 +395,9 @@ const Ecommerce = () => {
       name: product.product_name || product.name,
       price: Number(product.product_price) || product.price,
       image: product.product_image || product.image,
-      seller: "Premium Auto Supply"
+      seller: "Premium Auto Supply",
+      owner_id: product.owner_id,
+      phone_number: product.phone_number,
     };
 
     setCartItems(prev => {
@@ -349,10 +607,39 @@ const Ecommerce = () => {
                 <div className="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
                   <h6 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>Delivery Address</h6>
                 </div>
-                <div className="card-body px-4 pb-4 pt-2">
-                  <div className="p-3 rounded" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
-                    <p className="mb-1 fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>Auto Repair Shop</p>
-                    <p className="mb-0 text-secondary" style={{ fontSize: '0.85rem' }}>123 Lagos-Ibadan Expressway<br/>Lagos, Nigeria<br/>+234 800 123 4567</p>
+                <div className="card-body px-4 pb-4 pt-2 d-flex flex-column gap-3">
+                  <div>
+                    <label className="form-label mb-1" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Phone Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      placeholder="e.g. 08012345678"
+                      value={deliveryPhone}
+                      onChange={e => setDeliveryPhone(e.target.value.replace(/[^0-9+]/g, ''))}
+                      style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label mb-1" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Street Address</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="e.g. 12 Adeola Odeku Street, Victoria Island"
+                      value={deliveryAddress}
+                      onChange={e => setDeliveryAddress(e.target.value)}
+                      style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '0.9rem' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label mb-1" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>State</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="e.g. Lagos"
+                      value={deliveryState}
+                      onChange={e => setDeliveryState(e.target.value)}
+                      style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border-color)', color: 'var(--text-primary)', borderRadius: '8px', fontSize: '0.9rem' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -364,13 +651,14 @@ const Ecommerce = () => {
                 </div>
                 <div className="card-body px-4 pb-4 pt-2 d-flex flex-column gap-3">
                   
-                  {/* E-Wallet */}
-                  <div 
-                    onClick={() => setSelectedPayment('wallet')}
-                    className={`p-3 rounded d-flex align-items-center cursor-pointer transition-all ${selectedPayment === 'wallet' ? 'border-primary' : ''}`}
-                    style={{ 
-                      backgroundColor: selectedPayment === 'wallet' ? 'var(--bg-tertiary)' : 'transparent', 
-                      border: `1px solid ${selectedPayment === 'wallet' ? '#0099C2' : 'var(--border-color)'}`
+                  {/* E-Wallet (coming soon) */}
+                  <div
+                    className="p-3 rounded d-flex align-items-center"
+                    style={{
+                      backgroundColor: 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-color)',
+                      opacity: 0.55,
+                      cursor: 'not-allowed',
                     }}
                   >
                     <div className="d-flex align-items-center justify-content-center rounded-circle me-3" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(168, 85, 247, 0.1)', color: '#a855f7' }}>
@@ -380,45 +668,27 @@ const Ecommerce = () => {
                       <h6 className="mb-0 fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>E-Wallet</h6>
                       <small className="text-secondary" style={{ fontSize: '0.8rem' }}>Balance: ₦45,230</small>
                     </div>
-                    {selectedPayment === 'wallet' && <Check size={20} style={{ color: '#0099C2' }} />}
+                    <span className="badge text-white" style={{ backgroundColor: '#0099C2', fontSize: '0.7rem' }}>Coming Soon</span>
                   </div>
 
-                  {/* Debit/Credit Card */}
-                  <div 
-                    onClick={() => setSelectedPayment('card')}
-                    className={`p-3 rounded d-flex align-items-center cursor-pointer transition-all ${selectedPayment === 'card' ? 'border-primary' : ''}`}
-                    style={{ 
-                      backgroundColor: selectedPayment === 'card' ? 'var(--bg-tertiary)' : 'transparent', 
-                      border: `1px solid ${selectedPayment === 'card' ? '#0099C2' : 'var(--border-color)'}`
+                  {/* Pay with Paystack */}
+                  <div
+                    onClick={() => setSelectedPayment('paystack')}
+                    className="p-3 rounded d-flex align-items-center"
+                    style={{
+                      backgroundColor: selectedPayment === 'paystack' ? 'var(--bg-tertiary)' : 'transparent',
+                      border: `1px solid ${selectedPayment === 'paystack' ? '#0099C2' : 'var(--border-color)'}`,
+                      cursor: 'pointer',
                     }}
                   >
-                    <div className="d-flex align-items-center justify-content-center rounded-circle me-3" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(100, 116, 139, 0.1)', color: '#64748b' }}>
-                      <CreditCard size={20} />
+                    <div className="d-flex align-items-center justify-content-center rounded-circle me-3 fw-bold text-white" style={{ width: '40px', height: '40px', backgroundColor: '#00C3F7', fontSize: '0.75rem', letterSpacing: '-0.5px' }}>
+                      Pay
                     </div>
                     <div className="flex-grow-1">
-                      <h6 className="mb-0 fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>Debit/Credit Card</h6>
-                      <small className="text-secondary" style={{ fontSize: '0.8rem' }}>Pay with card</small>
+                      <h6 className="mb-0 fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>Pay with Paystack</h6>
+                      <small className="text-secondary" style={{ fontSize: '0.8rem' }}>Secure card &amp; bank payment</small>
                     </div>
-                    {selectedPayment === 'card' && <Check size={20} style={{ color: '#0099C2' }} />}
-                  </div>
-
-                  {/* Bank Transfer */}
-                  <div 
-                    onClick={() => setSelectedPayment('bank')}
-                    className={`p-3 rounded d-flex align-items-center cursor-pointer transition-all ${selectedPayment === 'bank' ? 'border-primary' : ''}`}
-                    style={{ 
-                      backgroundColor: selectedPayment === 'bank' ? 'var(--bg-tertiary)' : 'transparent', 
-                      border: `1px solid ${selectedPayment === 'bank' ? '#0099C2' : 'var(--border-color)'}`
-                    }}
-                  >
-                    <div className="d-flex align-items-center justify-content-center rounded-circle me-3" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(100, 116, 139, 0.1)', color: '#64748b' }}>
-                      <Building2 size={20} />
-                    </div>
-                    <div className="flex-grow-1">
-                      <h6 className="mb-0 fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>Bank Transfer</h6>
-                      <small className="text-secondary" style={{ fontSize: '0.8rem' }}>Pay via bank transfer</small>
-                    </div>
-                    {selectedPayment === 'bank' && <Check size={20} style={{ color: '#0099C2' }} />}
+                    {selectedPayment === 'paystack' && <Check size={20} style={{ color: '#0099C2' }} />}
                   </div>
 
                 </div>
@@ -445,20 +715,168 @@ const Ecommerce = () => {
               </div>
 
               {/* Complete Payment Button */}
-              <button 
-                className="btn w-100 py-3 fw-bold text-white border-0 shadow-sm mt-3" 
-                style={{ backgroundColor: '#001F3F', borderRadius: '10px' }}
-                onClick={() => {
-                  setShowNotification(true);
-                  setTimeout(() => setShowNotification(false), 2000);
-                  // Optional: Empty cart after successful checkout, return to products
-                  // setCartItems([]);
-                  // setViewState('products');
-                }}
+              <button
+                className="btn w-100 py-3 fw-bold text-white border-0 shadow-sm mt-3 d-flex align-items-center justify-content-center gap-2"
+                style={{ backgroundColor: '#001F3F', borderRadius: '10px', opacity: isPaymentLoading ? 0.75 : 1 }}
+                onClick={handleCompletePayment}
+                disabled={isPaymentLoading}
               >
-                Complete Payment
+                {isPaymentLoading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Initializing Payment...
+                  </>
+                ) : (
+                  'Complete Payment'
+                )}
               </button>
             </div>
+          </div>
+        </div>
+      ) : viewState === 'verifying' ? (
+        <div className="flex-grow-1 d-flex flex-column align-items-center justify-content-center gap-3 text-center p-4">
+          <div className="spinner-border mb-2" style={{ color: '#0099C2', width: '3rem', height: '3rem' }} role="status" />
+          <h5 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>Verifying Payment...</h5>
+          <p className="text-secondary mb-0" style={{ fontSize: '0.9rem' }}>Please wait while we confirm your payment with Paystack.</p>
+        </div>
+      ) : viewState === 'success' ? (
+        <div className="flex-grow-1 overflow-auto d-flex flex-column">
+          {/* Green success banner */}
+          <div className="d-flex flex-column align-items-center justify-content-center py-5 px-4 text-white" style={{ backgroundColor: '#1a9e5c', minHeight: '220px' }}>
+            <div className="rounded-circle d-flex align-items-center justify-content-center mb-3 bg-white" style={{ width: '72px', height: '72px' }}>
+              <Check size={36} style={{ color: '#1a9e5c' }} strokeWidth={3} />
+            </div>
+            <h4 className="fw-bold mb-1">Order Successful!</h4>
+            <p className="mb-0 opacity-75" style={{ fontSize: '0.95rem' }}>Your order has been placed successfully</p>
+          </div>
+
+          <div className="p-4 flex-grow-1" style={{ backgroundColor: 'var(--bg-primary)' }}>
+
+            {/* Order details card */}
+            <div className="card shadow-sm mb-4" style={{ backgroundColor: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+              <div className="card-body p-4">
+                <p className="text-secondary text-center mb-1" style={{ fontSize: '0.85rem' }}>Order Number</p>
+                <h5 className="fw-bold text-center mb-4" style={{ color: 'var(--text-primary)', letterSpacing: '0.5px' }}>
+                  ORD-{new Date().getFullYear()}-{paymentReference ? paymentReference.slice(-3).toUpperCase() : Math.floor(Math.random() * 900 + 100)}
+                </h5>
+                <div className="d-flex justify-content-between py-3 border-top" style={{ borderColor: 'var(--border-color)' }}>
+                  <span className="text-secondary" style={{ fontSize: '0.9rem' }}>Payment Method:</span>
+                  <span className="fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>Paystack</span>
+                </div>
+                <div className="d-flex justify-content-between py-3 border-top" style={{ borderColor: 'var(--border-color)' }}>
+                  <span className="text-secondary" style={{ fontSize: '0.9rem' }}>Total Paid:</span>
+                  <span className="fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>₦{paymentTotal.toLocaleString()}</span>
+                </div>
+                <div className="d-flex justify-content-between py-3 border-top" style={{ borderColor: 'var(--border-color)' }}>
+                  <span className="text-secondary" style={{ fontSize: '0.9rem' }}>Estimated Delivery:</span>
+                  <span className="fw-medium" style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>3-5 business days</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Info note */}
+            <div className="rounded-3 p-3 mb-4" style={{ backgroundColor: 'rgba(26, 158, 92, 0.08)', border: '1px solid rgba(26, 158, 92, 0.2)' }}>
+              <p className="mb-0" style={{ color: '#1a9e5c', fontSize: '0.88rem' }}>
+                We'll send you updates about your order via SMS and email. You can track your order in the Inventory section.
+              </p>
+            </div>
+
+            {/* Rate your purchases */}
+            {paidCartItems.length > 0 && (
+              <div className="card shadow-sm mb-4" style={{ backgroundColor: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <div className="card-header bg-transparent pt-4 pb-3 px-4" style={{ borderColor: 'var(--border-color)' }}>
+                  <h6 className="fw-bold mb-0" style={{ color: 'var(--text-primary)' }}>Rate your purchases</h6>
+                  <small className="text-secondary">Your feedback helps other mechanics find the right parts</small>
+                </div>
+                <div className="card-body px-4 pb-4 pt-2 d-flex flex-column gap-4">
+                  {paidCartItems.map(product => {
+                    const review = productReviews[product.id] || { rating: 0, text: '' };
+                    const submitted = submittedReviewIds.has(product.id);
+                    return (
+                      <div key={product.id} className="rounded-3 p-3" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
+                        {/* Product info */}
+                        <div className="d-flex align-items-center gap-3 mb-3">
+                          {product.image ? (
+                            <img src={product.image} alt={product.name} className="rounded-2 object-fit-cover flex-shrink-0" style={{ width: '48px', height: '48px' }} />
+                          ) : (
+                            <div className="rounded-2 flex-shrink-0 d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px', backgroundColor: 'var(--border-color)' }}>
+                              <ShoppingCart size={20} style={{ color: 'var(--text-secondary)' }} />
+                            </div>
+                          )}
+                          <div className="flex-grow-1">
+                            <p className="fw-semibold mb-0" style={{ color: 'var(--text-primary)', fontSize: '0.9rem' }}>{product.name}</p>
+                            <small className="text-secondary">₦{product.price?.toLocaleString()}</small>
+                          </div>
+                          {submitted && (
+                            <span className="badge text-white d-flex align-items-center gap-1" style={{ backgroundColor: '#1a9e5c', borderRadius: '20px', fontSize: '0.75rem' }}>
+                              <Check size={12} /> Reviewed
+                            </span>
+                          )}
+                        </div>
+
+                        {submitted ? (
+                          <p className="text-secondary mb-0" style={{ fontSize: '0.85rem' }}>Thank you for your review!</p>
+                        ) : (
+                          <>
+                            {/* Star rating */}
+                            <div className="d-flex gap-1 mb-3">
+                              {[1,2,3,4,5].map(star => (
+                                <motion.button
+                                  key={star}
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => handleReviewChange(product.id, 'rating', star)}
+                                  className="btn p-0 border-0 bg-transparent shadow-none"
+                                >
+                                  <Star
+                                    size={28}
+                                    fill={star <= review.rating ? '#f59e0b' : 'none'}
+                                    style={{ color: star <= review.rating ? '#f59e0b' : 'var(--border-color)', transition: 'color 0.15s' }}
+                                  />
+                                </motion.button>
+                              ))}
+                            </div>
+                            {/* Text input */}
+                            <textarea
+                              className="form-control mb-3"
+                              rows={2}
+                              placeholder="Share your experience (optional)..."
+                              value={review.text}
+                              onChange={e => handleReviewChange(product.id, 'text', e.target.value)}
+                              style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px', resize: 'none', fontSize: '0.88rem' }}
+                            />
+                            <motion.button
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => handleSubmitProductReview(product)}
+                              disabled={review.rating === 0 || isSubmittingReview}
+                              className="btn py-2 px-4 fw-semibold text-white border-0 d-flex align-items-center gap-2"
+                              style={{ backgroundColor: review.rating === 0 ? '#ccc' : '#001F3F', borderRadius: '8px', fontSize: '0.88rem', transition: 'background-color 0.2s' }}
+                            >
+                              {isSubmittingReview ? <><span className="spinner-border spinner-border-sm" /> Submitting...</> : 'Submit Review'}
+                            </motion.button>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <button
+              onClick={handleContinueShopping}
+              className="btn w-100 py-3 fw-bold text-white border-0 shadow-sm mb-3"
+              style={{ backgroundColor: '#001F3F', borderRadius: '10px' }}
+            >
+              Continue Shopping
+            </button>
+            <button
+              onClick={() => navigate('/inventory?tab=orders')}
+              className="btn w-100 py-3 fw-bold text-white border-0 shadow-sm"
+              style={{ backgroundColor: '#0099C2', borderRadius: '10px' }}
+            >
+              View My Orders
+            </button>
           </div>
         </div>
       ) : (
@@ -542,7 +960,7 @@ const Ecommerce = () => {
                 border: activeCategory === "All Products" ? 'none' : '1px solid var(--border-color)'
               }}
             >
-              All Products <span className="opacity-75">({categoryCounts.all ?? 0})</span>
+              All Products <span className="opacity-75">({apiProducts.length})</span>
             </button>
 
             {/* API Categories */}
@@ -703,14 +1121,52 @@ const Ecommerce = () => {
                         <small className="text-secondary ms-1">({product.reviews})</small>
                       </div>
                       <h5 className="fw-bold mb-4 mt-auto" style={{ color: 'var(--text-primary)' }}>₦{product.price.toLocaleString()}</h5>
-                      <motion.button 
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => addToCart(product)}
-                        className="btn w-100 py-3 d-flex align-items-center justify-content-center gap-2 text-white border-0"
-                        style={{ backgroundColor: '#001F3F', fontSize: '0.9rem', borderRadius: '10px' }}
-                      >
-                        <Plus size={18} /> Add to Cart
-                      </motion.button>
+                      {(() => {
+                        const cartItem = cartItems.find(item => item.id === product.id);
+                        if (cartItem) {
+                          return (
+                            <div className="d-flex align-items-center gap-2 w-100" style={{ height: '48px' }}>
+                              <motion.button
+                                whileTap={{ scale: 0.92 }}
+                                onClick={() => removeItem(product.id)}
+                                className="btn d-flex align-items-center justify-content-center border-0 text-white flex-shrink-0"
+                                style={{ backgroundColor: '#c0392b', borderRadius: '10px', width: '44px', height: '44px' }}
+                              >
+                                <Trash2 size={16} />
+                              </motion.button>
+                              <div className="d-flex align-items-center justify-content-between flex-grow-1 px-3 rounded-3 text-white fw-semibold" style={{ backgroundColor: '#001F3F', height: '44px', fontSize: '0.95rem' }}>
+                                <motion.button
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => updateQuantity(product.id, -1)}
+                                  className="btn p-0 text-white border-0 bg-transparent shadow-none d-flex align-items-center justify-content-center"
+                                  style={{ width: '28px', height: '28px', fontSize: '1.3rem', lineHeight: 1 }}
+                                >
+                                  −
+                                </motion.button>
+                                <span>{cartItem.quantity}</span>
+                                <motion.button
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => updateQuantity(product.id, 1)}
+                                  className="btn p-0 text-white border-0 bg-transparent shadow-none d-flex align-items-center justify-content-center"
+                                  style={{ width: '28px', height: '28px', fontSize: '1.3rem', lineHeight: 1 }}
+                                >
+                                  +
+                                </motion.button>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => addToCart(product)}
+                            className="btn w-100 py-3 d-flex align-items-center justify-content-center gap-2 text-white border-0"
+                            style={{ backgroundColor: '#001F3F', fontSize: '0.9rem', borderRadius: '10px' }}
+                          >
+                            <Plus size={18} /> Add to Cart
+                          </motion.button>
+                        );
+                      })()}
                     </div>
                   </div>
                 </motion.div>
@@ -808,16 +1264,54 @@ const Ecommerce = () => {
                     </p>
 
                     <div className="mt-auto pt-4 border-top" style={{ borderColor: 'var(--border-color)' }}>
-                       <button 
-                         onClick={() => { 
-                           addToCart(selectedProductDetails); 
-                           setSelectedProductDetails(null); 
-                         }} 
-                         className="btn w-100 py-3 fw-bold rounded-3 text-white d-flex align-items-center justify-content-center gap-2 shadow-sm"
-                         style={{ backgroundColor: '#001F3F', fontSize: '1rem' }}
-                       >
-                         <Plus size={20} /> Add to Cart
-                       </button>
+                      {(() => {
+                        const cartItem = cartItems.find(item => item.id === selectedProductDetails.id);
+                        if (cartItem) {
+                          return (
+                            <div className="d-flex align-items-center gap-2 w-100">
+                              <motion.button
+                                whileTap={{ scale: 0.92 }}
+                                onClick={() => removeItem(selectedProductDetails.id)}
+                                className="btn d-flex align-items-center justify-content-center border-0 text-white flex-shrink-0"
+                                style={{ backgroundColor: '#c0392b', borderRadius: '10px', width: '52px', height: '52px' }}
+                              >
+                                <Trash2 size={18} />
+                              </motion.button>
+                              <div className="d-flex align-items-center justify-content-between flex-grow-1 px-3 rounded-3 text-white fw-semibold" style={{ backgroundColor: '#001F3F', height: '52px', fontSize: '1rem' }}>
+                                <motion.button
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => updateQuantity(selectedProductDetails.id, -1)}
+                                  className="btn p-0 text-white border-0 bg-transparent shadow-none d-flex align-items-center justify-content-center"
+                                  style={{ width: '32px', height: '32px', fontSize: '1.5rem', lineHeight: 1 }}
+                                >
+                                  −
+                                </motion.button>
+                                <span>{cartItem.quantity} in cart</span>
+                                <motion.button
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => updateQuantity(selectedProductDetails.id, 1)}
+                                  className="btn p-0 text-white border-0 bg-transparent shadow-none d-flex align-items-center justify-content-center"
+                                  style={{ width: '32px', height: '32px', fontSize: '1.5rem', lineHeight: 1 }}
+                                >
+                                  +
+                                </motion.button>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <button
+                            onClick={() => {
+                              addToCart(selectedProductDetails);
+                              setSelectedProductDetails(null);
+                            }}
+                            className="btn w-100 py-3 fw-bold rounded-3 text-white d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                            style={{ backgroundColor: '#001F3F', fontSize: '1rem' }}
+                          >
+                            <Plus size={20} /> Add to Cart
+                          </button>
+                        );
+                      })()}
                     </div>
                   </>
                 )}

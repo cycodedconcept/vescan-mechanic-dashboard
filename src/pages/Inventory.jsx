@@ -1,28 +1,77 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import TopHeader from '../components/TopHeader';
-import { 
-  Bell, 
-  Search, 
-  Plus, 
-  AlertCircle,
-  Box,
-  Droplets,
-  Wind,
-  Zap,
-  ShoppingCart,
-  TrendingDown,
-  TrendingUp,
-  Menu
-} from 'lucide-react';
+import { Search, Plus, AlertCircle, Box, ShoppingCart } from 'lucide-react';
 
-import { inventoryData, ordersData, transactionData } from '../data/mockData';
+import { inventoryData, transactionData } from '../data/mockData';
+
+const ORDER_HISTORY_URL = 'https://zubitechnologies.com/obd_final_apis/api/customer_order_history';
 
 const Inventory = () => {
   const { isSidebarOpen, toggleSidebar } = useOutletContext();
-  const [activeTab, setActiveTab] = useState('inventory');
+  const [activeTab, setActiveTab] = useState(() => new URLSearchParams(window.location.search).get('tab') === 'orders' ? 'orders' : 'inventory');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+
+  useEffect(() => {
+    if (activeTab !== 'orders') return;
+    const controller = new AbortController();
+
+    const fetchOrders = async () => {
+      setIsLoadingOrders(true);
+      setOrdersError(null);
+      try {
+        const token = localStorage.getItem('vescan_token');
+        const res = await fetch(ORDER_HISTORY_URL, {
+          method: 'GET',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          signal: controller.signal,
+        });
+        const text = await res.text();
+        console.log('[Orders] status:', res.status, '| body:', text.slice(0, 800));
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        let data;
+        try { data = JSON.parse(text); } catch { throw new Error('Invalid response from server'); }
+
+        // Handle all common API response shapes
+        let orders = [];
+        if (Array.isArray(data)) {
+          orders = data;
+        } else if (Array.isArray(data?.data)) {
+          orders = data.data;
+        } else if (Array.isArray(data?.orders)) {
+          orders = data.orders;
+        } else if (data?.status === 'success' && data?.order) {
+          orders = Array.isArray(data.order) ? data.order : [data.order];
+        } else if (data && typeof data === 'object') {
+          // PHP-style numeric-keyed object: { "0": {...}, "1": {...} }
+          const vals = Object.values(data).filter(v => v && typeof v === 'object');
+          if (vals.length > 0) orders = vals;
+        }
+        console.log('[Orders] parsed count:', orders.length, '| first item:', orders.length > 0 ? JSON.stringify(orders[0]).slice(0, 300) : 'none');
+        const sorted = [...orders].sort((a, b) => {
+          // Sort by date if available, otherwise by id descending (newest first)
+          if (a.created_at && b.created_at) return new Date(b.created_at) - new Date(a.created_at);
+          return Number(b.id || 0) - Number(a.id || 0);
+        });
+        setOrderHistory(sorted);
+      } catch (err) {
+        if (err.name === 'AbortError') return; // StrictMode cleanup — ignore
+        console.error('[Orders] fetch error:', err);
+        setOrdersError(err.message || 'Failed to load orders. Please try again.');
+      } finally {
+        if (!controller.signal.aborted) setIsLoadingOrders(false);
+      }
+    };
+
+    fetchOrders();
+    return () => controller.abort();
+  }, [activeTab, fetchTrigger]);
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -131,7 +180,7 @@ const Inventory = () => {
                 }}
                 onClick={() => setActiveTab('orders')}
               >
-                Orders (3)
+                Orders {orderHistory.length > 0 && `(${orderHistory.length})`}
               </button>
             </li>
             <li className="nav-item">
@@ -299,82 +348,147 @@ const Inventory = () => {
                 transition={{ duration: 0.2 }}
                 className="d-flex flex-column gap-3"
               >
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="btn w-100 text-white rounded-3 py-2 d-flex align-items-center justify-content-center gap-2 mb-2 shadow-sm" 
-                  style={{ backgroundColor: 'var(--sidebar-bg)', fontWeight: 500 }}
-                >
-                  <Plus size={18} />
-                  Create New Order
-                </motion.button>
+                {/* Loading */}
+                {isLoadingOrders && (
+                  <div className="d-flex flex-column align-items-center justify-content-center py-5 gap-3">
+                    <div className="spinner-border" style={{ color: 'var(--sidebar-bg)', width: '2rem', height: '2rem' }} role="status" />
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Loading your orders...</span>
+                  </div>
+                )}
 
-                {ordersData.map((order) => (
-                  <motion.div 
-                    key={order.id} 
-                    variants={itemVariants}
-                    initial="hidden"
-                    animate="show"
-                    whileHover={{ y: -2, boxShadow: '0 8px 20px -5px rgba(0, 0, 0, 0.08)' }}
-                    className="border rounded-3 p-4 transition-all"
-                    style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}
-                  >
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div>
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <h6 className="mb-0 fw-bold" style={{ color: 'var(--text-primary)' }}>{order.id}</h6>
-                          <motion.span 
-                            animate={{ opacity: [0.7, 1, 0.7], scale: [0.98, 1.02, 0.98] }}
-                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                            className="badge rounded-pill fw-medium px-2 py-1"
-                            style={{ 
-                              backgroundColor: order.status === 'delivered' ? 'rgba(16, 185, 129, 0.15)' : order.status === 'pending' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                              color: order.status === 'delivered' ? '#10b981' : order.status === 'pending' ? '#f59e0b' : '#3b82f6',
-                              fontSize: '0.7rem'
-                            }}
-                          >
-                            {order.status}
-                          </motion.span>
+                {/* Error */}
+                {!isLoadingOrders && ordersError && (
+                  <div className="d-flex flex-column align-items-center justify-content-center py-5 gap-3 text-center">
+                    <AlertCircle size={40} style={{ color: '#ef4444' }} />
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{ordersError}</p>
+                    <button
+                      className="btn btn-sm px-4"
+                      style={{ backgroundColor: 'var(--sidebar-bg)', color: 'white', borderRadius: '8px' }}
+                      onClick={() => setFetchTrigger(n => n + 1)}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+
+                {/* Empty */}
+                {!isLoadingOrders && !ordersError && orderHistory.length === 0 && (
+                  <div className="d-flex flex-column align-items-center justify-content-center py-5 gap-3 text-center">
+                    <ShoppingCart size={48} style={{ color: 'var(--text-secondary)', opacity: 0.4 }} />
+                    <p className="fw-medium mb-0" style={{ color: 'var(--text-primary)' }}>No orders yet</p>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Your order history will appear here after your first purchase.</p>
+                  </div>
+                )}
+
+                {/* Order cards */}
+                {!isLoadingOrders && !ordersError && orderHistory.map((order, idx) => {
+                  // API returns delivery_status (uppercase e.g. "PENDING") or delivery
+                  const rawStatus = (order.delivery_status || order.delivery || 'pending').toLowerCase();
+                  const statusColors = {
+                    delivered: { bg: 'rgba(16,185,129,0.12)', text: '#10b981' },
+                    pending:   { bg: 'rgba(245,158,11,0.12)',  text: '#f59e0b' },
+                    shipped:   { bg: 'rgba(59,130,246,0.12)',  text: '#3b82f6' },
+                  };
+                  const { bg: statusBg, text: statusText } = statusColors[rawStatus] || { bg: 'rgba(100,116,139,0.12)', text: '#64748b' };
+
+                  // API may return a flat item or an order with nested products
+                  const isFlat = !Array.isArray(order.product);
+                  const products = isFlat ? [order] : order.product;
+
+                  // Image: API uses "LINK" (uppercase) or "image_url"
+                  const getImage  = (item) => item.LINK || item.image_url || item.link || null;
+                  const getName   = (item) => item.product_name || item.name || 'Product';
+                  const getQty    = (item) => item.product_quantity || item.quantity || '—';
+                  const getPrice  = (item) => item.product_price || item.price || null;
+
+                  const orderId   = order.id || order.order_id || (idx + 1);
+                  const orderDate = order.created_at || order.date || null;
+                  const totalAmt  = order.total_amount || order.amount || null;
+                  const deliveryAddress = order.destination_address || order.product?.[0]?.destination_address;
+                  const deliveryState   = order.state || order.product?.[0]?.state;
+
+                  return (
+                    <motion.div
+                      key={orderId}
+                      variants={itemVariants}
+                      initial="hidden"
+                      animate="show"
+                      whileHover={{ y: -2, boxShadow: '0 8px 20px -5px rgba(0,0,0,0.08)' }}
+                      className="border rounded-3 p-4"
+                      style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}
+                    >
+                      {/* Header row */}
+                      <div className="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                          <div className="d-flex align-items-center gap-2 mb-1">
+                            <h6 className="mb-0 fw-bold" style={{ color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                              ORD-{orderId}
+                            </h6>
+                            <span
+                              className="badge rounded-pill fw-medium px-2 py-1"
+                              style={{ backgroundColor: statusBg, color: statusText, fontSize: '0.7rem' }}
+                            >
+                              {rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1)}
+                            </span>
+                          </div>
+                          {orderDate && (
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              {orderDate}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{order.vendor}</div>
+                        {totalAmt && (
+                          <div className="fw-bold" style={{ color: 'var(--text-primary)', fontSize: '1.05rem' }}>
+                            ₦{Number(totalAmt).toLocaleString()}
+                          </div>
+                        )}
                       </div>
-                      <div className="fs-5 fw-bold" style={{ color: 'var(--text-primary)' }}>
-                        {order.total}
-                      </div>
-                    </div>
 
-                    <div className="rounded p-3 mb-4" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
-                      <div className="mb-2" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Order Items:</div>
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="d-flex justify-content-between align-items-center mb-1">
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{item.qty}x {item.name}</span>
-                          <span className="fw-medium" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{item.price}</span>
+                      {/* Products */}
+                      <div className="rounded-3 p-3 mb-3" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                        <div className="mb-2 fw-medium" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          Order Items ({products.length})
                         </div>
-                      ))}
-                    </div>
+                        <div className="d-flex flex-column gap-2">
+                          {products.map((item, i) => (
+                            <div key={i} className="d-flex align-items-center gap-3">
+                              {getImage(item) ? (
+                                <img
+                                  src={getImage(item)}
+                                  alt={getName(item)}
+                                  className="rounded-2 flex-shrink-0"
+                                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div className="rounded-2 flex-shrink-0 d-flex align-items-center justify-content-center"
+                                  style={{ width: '40px', height: '40px', backgroundColor: 'var(--border-color)' }}>
+                                  <Box size={16} style={{ color: 'var(--text-secondary)' }} />
+                                </div>
+                              )}
+                              <div className="flex-grow-1">
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 500 }}>{getName(item)}</div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Qty: {getQty(item)}</div>
+                              </div>
+                              {getPrice(item) && (
+                                <div className="fw-medium" style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                                  ₦{Number(getPrice(item)).toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
 
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ordered: {order.orderedDate}</span>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Expected: {order.expectedDate}</span>
-                    </div>
-
-                    <div className="d-flex align-items-center gap-2 mt-3">
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Payment:</span>
-                      <span 
-                        className="badge" 
-                        style={{ 
-                          backgroundColor: 'rgba(147, 51, 234, 0.15)', 
-                          color: '#9333ea',
-                          padding: '0.3rem 0.6rem',
-                          fontSize: '0.75rem',
-                          fontWeight: 500
-                        }}
-                      >
-                        {order.payment}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
+                      {/* Delivery info */}
+                      {(deliveryAddress || deliveryState) && (
+                        <div className="d-flex align-items-start gap-2" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                          <span className="fw-medium" style={{ color: 'var(--text-primary)', flexShrink: 0 }}>Delivery:</span>
+                          <span>{[deliveryAddress, deliveryState].filter(Boolean).join(', ')}</span>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </motion.div>
             )}
 
